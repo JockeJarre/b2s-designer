@@ -105,8 +105,11 @@ Public Class ImageLoader
             saveMethod.Invoke(imageSharpImage, New Object() {ms})
             ms.Position = 0
             
-            ' Load as Bitmap
-            Dim bitmap = New Bitmap(ms)
+            ' Load as Bitmap - create a copy so we can dispose the stream
+            Dim tempBitmap = New Bitmap(ms)
+            Dim bitmap = New Bitmap(tempBitmap)
+            tempBitmap.Dispose()
+            ms.Dispose()
             
             ' Dispose the ImageSharp image
             If TypeOf imageSharpImage Is IDisposable Then
@@ -128,9 +131,16 @@ Public Class ImageLoader
         End If
 
         Dim ms As New MemoryStream()
-        image.Save(ms, image.RawFormat)
-        ms.Position = 0
-        Return Image.FromStream(ms)
+        Try
+            image.Save(ms, image.RawFormat)
+            ms.Position = 0
+            Dim tempBitmap = New Bitmap(ms)
+            Dim copy = New Bitmap(tempBitmap)
+            tempBitmap.Dispose()
+            Return copy
+        Finally
+            ms.Dispose()
+        End Try
     End Function
 
 End Class

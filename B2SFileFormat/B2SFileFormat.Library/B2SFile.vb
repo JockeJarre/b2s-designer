@@ -2,17 +2,15 @@
 Imports System.IO.Compression
 Imports System.Xml
 
-Namespace B2SFileFormat.Library
+''' <summary>
+''' Represents a B2S backglass file (directb2s or zipb2s format)
+''' </summary>
+Public Class B2SFile
+    Public Property XmlDocument As XmlDocument
+    Public Property Images As New Dictionary(Of String, Byte())
 
-    ''' <summary>
-    ''' Represents a B2S backglass file (directb2s or zipb2s format)
-    ''' </summary>
-    Public Class B2SFile
-        Public Property XmlDocument As XmlDocument
-        Public Property Images As New Dictionary(Of String, Byte())
-
-        Public Sub New()
-            XmlDocument = New XmlDocument()
+    Public Sub New()
+        XmlDocument = New XmlDocument()
         End Sub
 
         ''' <summary>
@@ -272,6 +270,4 @@ Namespace B2SFileFormat.Library
             Dim result = String.Join("_", name.Split(invalid, StringSplitOptions.RemoveEmptyEntries))
             Return If(String.IsNullOrEmpty(result), "image", result)
         End Function
-    End Class
-
-End Namespace
+End Class

@@ -1,6 +1,6 @@
 Imports System
 Imports System.IO
-Imports B2SFileFormat.Library.B2SFileFormat.Library
+Imports B2SFileFormat.Library
 
 Module Program
     Sub Main(args As String())
