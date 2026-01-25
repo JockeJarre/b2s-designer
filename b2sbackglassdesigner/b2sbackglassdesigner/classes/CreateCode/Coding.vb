@@ -2532,9 +2532,7 @@ Public Class Coding
         If valueNodes IsNot Nothing Then
             For Each node As Xml.XmlNode In valueNodes
                 ' Only process image-related nodes
-                If node.Name = "BackglassImage" OrElse node.Name = "BackglassOnImage" OrElse _
-                   node.Name = "BackglassOffImage" OrElse node.Name = "DMDImage" OrElse _
-                   node.Name = "IlluminationImage" OrElse node.Name = "ThumbnailImage" Then
+                If IsImageNodeWithValueAttribute(node.Name) Then
                     
                     Dim valueAttr As Xml.XmlAttribute = node.Attributes("Value")
                     If valueAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(valueAttr.Value) Then
@@ -2558,6 +2556,15 @@ Public Class Coding
             Next
         End If
     End Sub
+    
+    ''' <summary>
+    ''' Check if a node represents an image node that uses Value attribute
+    ''' </summary>
+    Private Function IsImageNodeWithValueAttribute(ByVal nodeName As String) As Boolean
+        Return nodeName = "BackglassImage" OrElse nodeName = "BackglassOnImage" OrElse _
+               nodeName = "BackglassOffImage" OrElse nodeName = "DMDImage" OrElse _
+               nodeName = "IlluminationImage" OrElse nodeName = "ThumbnailImage"
+    End Function
     
     ''' <summary>
     ''' Get appropriate filename for an image based on node type and image data
@@ -2645,9 +2652,7 @@ Public Class Coding
         If valueNodes IsNot Nothing Then
             For Each node As Xml.XmlNode In valueNodes
                 ' Only process image-related nodes
-                If node.Name = "BackglassImage" OrElse node.Name = "BackglassOnImage" OrElse _
-                   node.Name = "BackglassOffImage" OrElse node.Name = "DMDImage" OrElse _
-                   node.Name = "IlluminationImage" OrElse node.Name = "ThumbnailImage" Then
+                If IsImageNodeWithValueAttribute(node.Name) Then
                     
                     Dim valueAttr As Xml.XmlAttribute = node.Attributes("Value")
                     If valueAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(valueAttr.Value) Then
