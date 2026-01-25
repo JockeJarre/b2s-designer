@@ -2640,8 +2640,12 @@ Public Class Coding
         ElseIf node.Name = "ThumbnailImage" Then
             baseName = "thumbnail"
         ElseIf node.Name = "Bulb" Then
+            ' Use Name attribute if available (human-readable), otherwise ID
+            Dim nameAttr As Xml.XmlAttribute = node.Attributes("Name")
             Dim idAttr As Xml.XmlAttribute = node.Attributes("ID")
-            If idAttr IsNot Nothing Then
+            If nameAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(nameAttr.Value) Then
+                baseName = "bulb_" & MakeValidFileName(nameAttr.Value)
+            ElseIf idAttr IsNot Nothing Then
                 baseName = "bulb_" & idAttr.Value
             Else
                 baseName = "bulb_" & counter.ToString()
@@ -2651,6 +2655,15 @@ Public Class Coding
         End If
         
         Return baseName & "_" & counter.ToString() & extension
+    End Function
+    
+    ''' <summary>
+    ''' Make a string safe for use as a filename
+    ''' </summary>
+    Private Function MakeValidFileName(name As String) As String
+        Dim invalid = IO.Path.GetInvalidFileNameChars()
+        Dim result As String = String.Join("_", name.Split(invalid, StringSplitOptions.RemoveEmptyEntries))
+        Return If(String.IsNullOrEmpty(result), "image", result)
     End Function
     
     ''' <summary>

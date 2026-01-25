@@ -379,31 +379,41 @@ Public Class B2SFile
             ' Detect image format from bytes
             Dim extension = DetectImageFormat(imageBytes)
 
-            ' Generate filename based on node type (matching designer logic)
+            ' Try to get name from ID or Name attribute
+            Dim idAttr = node.Attributes("ID")
+            Dim nameAttr = node.Attributes("Name")
+
             Dim baseName = "image"
+            If nameAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(nameAttr.Value) Then
+                baseName = MakeValidFileName(nameAttr.Value)
+            ElseIf idAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(idAttr.Value) Then
+                baseName = "id_" & idAttr.Value
+            End If
+
+            ' Add node name prefix for better identification
             Dim prefix = node.Name.ToLower()
-            
-            If prefix = "backglassimage" OrElse prefix = "backglassonimage" OrElse prefix = "backglassoffimage" Then
+            If prefix = "mainimage" Then
+                baseName = "main_" & baseName
+            ElseIf prefix = "bulb" Then
+                baseName = "bulb_" & baseName
+            ElseIf prefix = "backglassimage" Then
                 baseName = "backglass"
+            ElseIf prefix = "backglassonimage" Then
+                baseName = "backglass_on"
+            ElseIf prefix = "backglassoffimage" Then
+                baseName = "backglass_off"
             ElseIf prefix = "dmdimage" Then
                 baseName = "dmd"
             ElseIf prefix = "illuminationimage" Then
                 baseName = "illumination"
             ElseIf prefix = "thumbnailimage" Then
                 baseName = "thumbnail"
-            ElseIf prefix = "bulb" Then
-                ' Use ID attribute for bulbs (matching designer behavior)
-                Dim idAttr = node.Attributes("ID")
-                If idAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(idAttr.Value) Then
-                    baseName = "bulb_" & idAttr.Value
-                Else
-                    baseName = "bulb_" & counter.ToString()
-                End If
-            ElseIf prefix = "reel" OrElse (prefix = "image" AndAlso node.ParentNode IsNot Nothing AndAlso node.ParentNode.Name.ToLower() = "images") Then
-                baseName = "reel_" & counter.ToString()
+            ElseIf prefix = "image" AndAlso node.ParentNode IsNot Nothing AndAlso node.ParentNode.Name.ToLower() = "images" Then
+                ' Reel images under Reels/Images
+                baseName = "reel_" & baseName
             End If
 
-            ' Return filename with counter and extension
+            ' Add counter to ensure uniqueness
             Return $"{baseName}_{counter}.{extension}"
         End Function
 
