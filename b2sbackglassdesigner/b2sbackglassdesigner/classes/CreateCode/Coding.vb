@@ -2601,6 +2601,15 @@ Public Class Coding
     ''' Get appropriate filename for an image based on node type and image data
     ''' </summary>
     Private Function GetImageFileName(ByVal node As Xml.XmlNode, ByVal counter As Integer, ByVal imageBytes As Byte()) As String
+        ' Try to get existing filename first (for consistency across exports)
+        Dim fileNameAttr As Xml.XmlAttribute = node.Attributes("FileName")
+        If fileNameAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(fileNameAttr.Value) Then
+            Dim existingName As String = IO.Path.GetFileName(fileNameAttr.Value)
+            If Not String.IsNullOrEmpty(existingName) Then
+                Return existingName
+            End If
+        End If
+        
         Dim extension As String = ".png" ' Default to PNG
         
         ' Detect image format from magic bytes
