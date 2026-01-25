@@ -2,6 +2,7 @@
 Imports System.Text
 Imports System.Drawing.Drawing2D
 Imports System.Drawing.Text
+Imports System.IO.Compression
 
 Public Class Coding
 
@@ -557,11 +558,25 @@ Public Class Coding
         End If
 
         Dim XML As Xml.XmlDocument = New Xml.XmlDocument
-        Try
-            XML.Load(filename)
-        Catch ex As Exception
-            MessageBox.Show(String.Format(My.Resources.MSG_ImportError, ex.Message), AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error)
-        End Try
+        
+        ' Check if this is a zipb2s file
+        Dim extension As String = IO.Path.GetExtension(filename).ToLower()
+        If extension = ".zipb2s" Then
+            ' Load zipb2s file
+            Try
+                XML = LoadZipB2SAsXml(filename)
+            Catch ex As Exception
+                MessageBox.Show(String.Format(My.Resources.MSG_ImportError, ex.Message), AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Return False
+            End Try
+        Else
+            ' Load directb2s file (standard XML)
+            Try
+                XML.Load(filename)
+            Catch ex As Exception
+                MessageBox.Show(String.Format(My.Resources.MSG_ImportError, ex.Message), AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End If
 
         If XML IsNot Nothing AndAlso XML.SelectSingleNode("DirectB2SData") IsNot Nothing Then
 
@@ -2278,6 +2293,310 @@ Public Class Coding
         End If
         Return ret
     End Function
+
+#End Region
+
+#Region "zipB2S support"
+
+    ''' <summary>
+    ''' Load a zipb2s file and convert it to XML with embedded base64 images
+    ''' </summary>
+    Private Function LoadZipB2SAsXml(ByVal filename As String) As Xml.XmlDocument
+        Dim xml As New Xml.XmlDocument()
+        Dim images As New Dictionary(Of String, Byte())
+        
+        ' Open the ZIP archive
+        Using archive As ZipArchive = ZipFile.OpenRead(filename)
+            ' Find and load the XML file
+            Dim xmlEntry As ZipArchiveEntry = Nothing
+            For Each entry As ZipArchiveEntry In archive.Entries
+                If entry.Name.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) Then
+                    xmlEntry = entry
+                    Exit For
+                End If
+            Next
+            
+            If xmlEntry Is Nothing Then
+                Throw New InvalidDataException("No XML file found in zipb2s archive")
+            End If
+            
+            ' Load the XML
+            Using xmlStream As IO.Stream = xmlEntry.Open()
+                xml.Load(xmlStream)
+            End Using
+            
+            ' Load all image files into dictionary
+            For Each entry As ZipArchiveEntry In archive.Entries
+                If Not entry.Name.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) AndAlso entry.Length > 0 Then
+                    Using stream As IO.Stream = entry.Open()
+                        Using ms As New IO.MemoryStream()
+                            stream.CopyTo(ms)
+                            images(entry.FullName) = ms.ToArray()
+                        End Using
+                    End Using
+                End If
+            Next
+        End Using
+        
+        ' Embed images into XML as base64
+        EmbedImagesToXml(xml, images)
+        
+        Return xml
+    End Function
+    
+    ''' <summary>
+    ''' Embed images from dictionary into XML as base64
+    ''' </summary>
+    Private Sub EmbedImagesToXml(ByVal xml As Xml.XmlDocument, ByVal images As Dictionary(Of String, Byte()))
+        If images.Count = 0 Then Return
+        
+        ' Find all nodes with FileName attribute
+        Dim imageNodes As Xml.XmlNodeList = xml.SelectNodes("//*[@FileName]")
+        If imageNodes Is Nothing Then Return
+        
+        For Each node As Xml.XmlNode In imageNodes
+            Dim fileNameAttr As Xml.XmlAttribute = node.Attributes("FileName")
+            If fileNameAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(fileNameAttr.Value) Then
+                ' Look for matching image in dictionary
+                Dim imagePath As String = fileNameAttr.Value
+                Dim imageData As Byte() = Nothing
+                Dim matchedKey As String = Nothing
+                
+                If images.ContainsKey(imagePath) Then
+                    imageData = images(imagePath)
+                    matchedKey = imagePath
+                Else
+                    ' Try just the filename
+                    Dim fileName As String = IO.Path.GetFileName(imagePath)
+                    For Each key As String In images.Keys
+                        If IO.Path.GetFileName(key) = fileName Then
+                            imageData = images(key)
+                            matchedKey = key
+                            Exit For
+                        End If
+                    Next
+                End If
+                
+                If imageData IsNot Nothing Then
+                    ' Convert AVIF to PNG if needed
+                    If matchedKey IsNot Nothing AndAlso IO.Path.GetExtension(matchedKey).ToLower() = ".avif" Then
+                        imageData = ConvertAvifToPng(imageData)
+                    End If
+                    
+                    ' Update or create Image attribute with base64 data
+                    Dim imageAttr As Xml.XmlAttribute = node.Attributes("Image")
+                    If imageAttr Is Nothing Then
+                        imageAttr = xml.CreateAttribute("Image")
+                        node.Attributes.Append(imageAttr)
+                    End If
+                    imageAttr.Value = Convert.ToBase64String(imageData, Base64FormattingOptions.InsertLineBreaks)
+                End If
+            End If
+        Next
+    End Sub
+    
+    ''' <summary>
+    ''' Convert AVIF image bytes to PNG bytes
+    ''' </summary>
+    Private Function ConvertAvifToPng(ByVal avifData As Byte()) As Byte()
+        ' Try to use ImageLoader to convert AVIF to PNG
+        Try
+            ' Save AVIF to temp file
+            Dim tempAvif As String = IO.Path.Combine(IO.Path.GetTempPath(), Guid.NewGuid().ToString() & ".avif")
+            IO.File.WriteAllBytes(tempAvif, avifData)
+            
+            ' Load with ImageLoader (supports AVIF)
+            Dim img As Image = ImageLoader.LoadImage(tempAvif)
+            
+            ' Convert to PNG bytes
+            Using ms As New IO.MemoryStream()
+                img.Save(ms, Imaging.ImageFormat.Png)
+                Dim pngData As Byte() = ms.ToArray()
+                img.Dispose()
+                IO.File.Delete(tempAvif)
+                Return pngData
+            End Using
+        Catch ex As Exception
+            ' If conversion fails, return original data
+            Return avifData
+        End Try
+    End Function
+    
+    ''' <summary>
+    ''' Create a zipb2s file with XML and separate image files
+    ''' </summary>
+    Public Function CreateZipB2SFile(ByVal filePath As String) As Boolean
+        Try
+            ' First create the directB2S file in the project directory
+            Dim assemblyname As String = Backglass.currentData.VSName
+            Dim directB2SPath As String = IO.Path.Combine(ProjectPath, assemblyname & ".directb2s")
+            
+            ' Create the directB2S file using existing method
+            If Not CreateDirectB2SFile() Then
+                Return False
+            End If
+            
+            ' Now convert the directB2S to zipB2S
+            If Not IO.File.Exists(directB2SPath) Then
+                MessageBox.Show("Failed to create directB2S file", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Return False
+            End If
+            
+            ' Load the directB2S XML
+            Dim xml As New Xml.XmlDocument()
+            xml.Load(directB2SPath)
+            
+            ' Extract images from XML
+            Dim images As New Dictionary(Of String, Byte())
+            ExtractImagesFromXml(xml, images)
+            
+            ' Create a copy of XML with filenames instead of base64
+            Dim xmlCopy As Xml.XmlDocument = CType(xml.Clone(), Xml.XmlDocument)
+            ReplaceBase64WithFilenames(xmlCopy, images.Keys)
+            
+            ' Create ZIP file
+            If IO.File.Exists(filePath) Then
+                IO.File.Delete(filePath)
+            End If
+            
+            Using archive As ZipArchive = ZipFile.Open(filePath, ZipArchiveMode.Create)
+                ' Add XML file
+                Dim xmlEntryName As String = IO.Path.GetFileNameWithoutExtension(filePath) & ".xml"
+                Dim xmlEntry As ZipArchiveEntry = archive.CreateEntry(xmlEntryName)
+                Using entryStream As IO.Stream = xmlEntry.Open()
+                    xmlCopy.Save(entryStream)
+                End Using
+                
+                ' Add image files
+                For Each kvp As KeyValuePair(Of String, Byte()) In images
+                    Dim imageEntry As ZipArchiveEntry = archive.CreateEntry(kvp.Key)
+                    Using entryStream As IO.Stream = imageEntry.Open()
+                        entryStream.Write(kvp.Value, 0, kvp.Value.Length)
+                    End Using
+                Next
+            End Using
+            
+            Return True
+        Catch ex As Exception
+            MessageBox.Show(String.Format("Error creating zipB2S file: {0}", ex.Message), AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return False
+        End Try
+    End Function
+    
+    ''' <summary>
+    ''' Extract base64 images from XML to dictionary
+    ''' </summary>
+    Private Sub ExtractImagesFromXml(ByVal xml As Xml.XmlDocument, ByRef images As Dictionary(Of String, Byte()))
+        If xml Is Nothing Then Return
+        
+        ' Find all Image attributes with base64 data
+        Dim imageNodes As Xml.XmlNodeList = xml.SelectNodes("//*[@Image]")
+        If imageNodes Is Nothing Then Return
+        
+        Dim imageCounter As Integer = 0
+        For Each node As Xml.XmlNode In imageNodes
+            Dim imageAttr As Xml.XmlAttribute = node.Attributes("Image")
+            If imageAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(imageAttr.Value) Then
+                Try
+                    Dim base64Data As String = imageAttr.Value
+                    Dim imageBytes As Byte() = Convert.FromBase64String(base64Data)
+                    
+                    ' Detect image format and generate filename
+                    Dim fileName As String = GetImageFileName(node, imageCounter, imageBytes)
+                    imageCounter += 1
+                    
+                    ' Store in dictionary if not already there
+                    If Not images.ContainsKey(fileName) Then
+                        images(fileName) = imageBytes
+                    End If
+                Catch ex As Exception
+                    ' Skip invalid base64 data
+                End Try
+            End If
+        Next
+    End Sub
+    
+    ''' <summary>
+    ''' Get appropriate filename for an image based on node type and image data
+    ''' </summary>
+    Private Function GetImageFileName(ByVal node As Xml.XmlNode, ByVal counter As Integer, ByVal imageBytes As Byte()) As String
+        Dim extension As String = ".png" ' Default to PNG
+        
+        ' Detect image format from magic bytes
+        If imageBytes.Length >= 4 Then
+            ' PNG: 89 50 4E 47
+            If imageBytes(0) = &H89 AndAlso imageBytes(1) = &H50 AndAlso imageBytes(2) = &H4E AndAlso imageBytes(3) = &H47 Then
+                extension = ".png"
+            ' JPEG: FF D8 FF
+            ElseIf imageBytes(0) = &HFF AndAlso imageBytes(1) = &HD8 AndAlso imageBytes(2) = &HFF Then
+                extension = ".jpg"
+            ' GIF: 47 49 46
+            ElseIf imageBytes(0) = &H47 AndAlso imageBytes(1) = &H49 AndAlso imageBytes(2) = &H46 Then
+                extension = ".gif"
+            ' BMP: 42 4D
+            ElseIf imageBytes(0) = &H42 AndAlso imageBytes(1) = &H4D Then
+                extension = ".bmp"
+            End If
+        End If
+        
+        ' Generate filename based on node type
+        Dim baseName As String = "image"
+        If node.Name = "BackglassImage" OrElse node.Name = "BackglassOnImage" OrElse node.Name = "BackglassOffImage" Then
+            baseName = "backglass"
+        ElseIf node.Name = "DMDImage" Then
+            baseName = "dmd"
+        ElseIf node.Name = "IlluminationImage" Then
+            baseName = "illumination"
+        ElseIf node.Name = "ThumbnailImage" Then
+            baseName = "thumbnail"
+        ElseIf node.Name = "Bulb" Then
+            Dim idAttr As Xml.XmlAttribute = node.Attributes("ID")
+            If idAttr IsNot Nothing Then
+                baseName = "bulb_" & idAttr.Value
+            Else
+                baseName = "bulb_" & counter.ToString()
+            End If
+        ElseIf node.Name = "Reel" Then
+            baseName = "reel_" & counter.ToString()
+        End If
+        
+        Return baseName & "_" & counter.ToString() & extension
+    End Function
+    
+    ''' <summary>
+    ''' Replace base64 Image attributes with FileName references
+    ''' </summary>
+    Private Sub ReplaceBase64WithFilenames(ByVal xml As Xml.XmlDocument, ByVal imageFileNames As ICollection(Of String))
+        If xml Is Nothing OrElse imageFileNames Is Nothing Then Return
+        
+        ' Find all Image attributes
+        Dim imageNodes As Xml.XmlNodeList = xml.SelectNodes("//*[@Image]")
+        If imageNodes Is Nothing Then Return
+        
+        Dim fileNameList As New List(Of String)(imageFileNames)
+        Dim fileNameIndex As Integer = 0
+        
+        For Each node As Xml.XmlNode In imageNodes
+            Dim imageAttr As Xml.XmlAttribute = node.Attributes("Image")
+            If imageAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(imageAttr.Value) Then
+                ' Clear the base64 image data
+                imageAttr.Value = String.Empty
+                
+                ' Set or update FileName attribute
+                Dim fileNameAttr As Xml.XmlAttribute = node.Attributes("FileName")
+                If fileNameAttr Is Nothing Then
+                    fileNameAttr = xml.CreateAttribute("FileName")
+                    node.Attributes.Append(fileNameAttr)
+                End If
+                
+                ' Use corresponding filename from list
+                If fileNameIndex < fileNameList.Count Then
+                    fileNameAttr.Value = fileNameList(fileNameIndex)
+                    fileNameIndex += 1
+                End If
+            End If
+        Next
+    End Sub
 
 #End Region
 
