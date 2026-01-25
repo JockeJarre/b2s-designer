@@ -13,7 +13,7 @@ Module moduleB2S
     Public DefaultLEDs As String() = New String() {"LED_0", "LED_Blue_0"}
     Public ImportedStartString As String = "Imported"
 
-    Public ImageFileExtensionFilter As String = My.Resources.TXT_AllImages & "|*.png; *.jpg; *.jpeg; *.gif; *.bmp|PNG (*.png)|*.png|JPEG (*.jpg)|*.jpg|GIF (*.gif)|*.gif|BITMAP (*.bmp)|*.bmp|ALL (*.*)|*.*"
+    Public ImageFileExtensionFilter As String = My.Resources.TXT_AllImages & "|*.png; *.jpg; *.jpeg; *.gif; *.bmp; *.avif|PNG (*.png)|*.png|JPEG (*.jpg)|*.jpg|GIF (*.gif)|*.gif|BITMAP (*.bmp)|*.bmp|AVIF (*.avif)|*.avif|ALL (*.*)|*.*"
 
     Private EXEDir As String = Application.StartupPath
     Private Const ProjectDir As String = "Projects"

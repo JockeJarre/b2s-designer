@@ -126,7 +126,7 @@ Public Class formSnippitSettings
                     If .ShowDialog(Me) = DialogResult.OK Then
                         Backglass.currentImages.RemoveByTypeAndName(Images.eImageInfoType.IlluminationSnippits, bulb.Name)
 
-                        bulb.Image = Bitmap.FromFile(.FileName).Copy(True)
+                        bulb.Image = ImageLoader.LoadImage(.FileName).Copy(True)
                         bulb.Name = IO.Path.GetFileNameWithoutExtension(.FileName)
                         bulb.Size.Width = bulb.Image.Width
                         bulb.Size.Height = bulb.Image.Height

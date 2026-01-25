@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="B2SConverter/B2SConverter.vbproj" />
+  <Project Path="B2SFileFormat.Library/B2SFileFormat.Library.vbproj" />
+</Solution>

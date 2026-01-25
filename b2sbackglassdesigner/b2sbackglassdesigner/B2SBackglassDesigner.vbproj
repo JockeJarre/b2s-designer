@@ -164,6 +164,7 @@
     <Compile Include="Classes\Reels\ScoreCollection.vb" />
     <Compile Include="Classes\Reels\ScoreInfo.vb" />
     <Compile Include="Classes\Save.vb" />
+    <Compile Include="Classes\ImageLoader.vb" />
     <Compile Include="Classes\Illumination\Lights.vb" />
     <Compile Include="Classes\Illumination\BulbInfo.vb" />
     <Compile Include="Classes\PictureBox\Mouse.vb" />

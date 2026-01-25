@@ -40,7 +40,7 @@ Public Class formAddSnippit
                             onefileselected = True
                             txtImageFileName.Text = filedialog.FileName
                             txtImageFileName.Enabled = True
-                            Dim image As Image = Bitmap.FromFile(filedialog.FileName).Copy(True)
+                            Dim image As Image = ImageLoader.LoadImage(filedialog.FileName).Copy(True)
                             PictureBoxImage.BackgroundImage = image
                             txtName.Text = IO.Path.GetFileNameWithoutExtension(filedialog.FileName)
                             txtName.Enabled = True
@@ -49,7 +49,7 @@ Public Class formAddSnippit
                             filenames = filedialog.FileNames
                             txtImageFileName.Text = "... " & filedialog.FileNames.Count.ToString() & " files selected ..."
                             txtImageFileName.Enabled = False
-                            Dim image As Image = Bitmap.FromFile(filedialog.FileNames(0)).Copy(True)
+                            Dim image As Image = ImageLoader.LoadImage(filedialog.FileNames(0)).Copy(True)
                             PictureBoxImage.BackgroundImage = image
                             txtName.Text = "..."
                             txtName.Enabled = False
@@ -95,7 +95,7 @@ Public Class formAddSnippit
                 Dim y As Integer = If(IsNumeric(txtY.Text), CInt(txtY.Text), 0)
                 For Each file As String In filenames
                     RaiseEvent SnippitAdded(Me, New AddSnippitEventArgs(IO.Path.GetFileNameWithoutExtension(file),
-                                                                        Bitmap.FromFile(file).Copy(True),
+                                                                        ImageLoader.LoadImage(file).Copy(True),
                                                                         file,
                                                                         New Point(x, y)))
                     reset = True
