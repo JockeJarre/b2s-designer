@@ -2622,10 +2622,9 @@ Public Class Coding
     ''' Replace base64 Image attributes with FileName references
     ''' </summary>
     Private Sub ReplaceBase64WithFilenames(ByVal xml As Xml.XmlDocument, ByVal imageFileNames As ICollection(Of String))
-        If xml Is Nothing OrElse imageFileNames Is Nothing Then Return
+        If xml Is Nothing Then Return
         
-        Dim fileNameList As New List(Of String)(imageFileNames)
-        Dim fileNameIndex As Integer = 0
+        Dim imageCounter As Integer = 0
         
         ' Replace Image attributes
         Dim imageNodes As Xml.XmlNodeList = xml.SelectNodes("//*[@Image]")
@@ -2633,21 +2632,28 @@ Public Class Coding
             For Each node As Xml.XmlNode In imageNodes
                 Dim imageAttr As Xml.XmlAttribute = node.Attributes("Image")
                 If imageAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(imageAttr.Value) Then
-                    ' Clear the base64 image data
-                    imageAttr.Value = String.Empty
-                    
-                    ' Set or update FileName attribute
-                    Dim fileNameAttr As Xml.XmlAttribute = node.Attributes("FileName")
-                    If fileNameAttr Is Nothing Then
-                        fileNameAttr = xml.CreateAttribute("FileName")
-                        node.Attributes.Append(fileNameAttr)
-                    End If
-                    
-                    ' Use corresponding filename from list
-                    If fileNameIndex < fileNameList.Count Then
-                        fileNameAttr.Value = fileNameList(fileNameIndex)
-                        fileNameIndex += 1
-                    End If
+                    Try
+                        ' Get the image bytes from base64 to generate filename
+                        Dim imageBytes As Byte() = Convert.FromBase64String(imageAttr.Value)
+                        
+                        ' Generate filename with correct extension
+                        Dim fileName As String = GetImageFileName(node, imageCounter, imageBytes)
+                        imageCounter += 1
+                        
+                        ' Clear the base64 image data
+                        imageAttr.Value = String.Empty
+                        
+                        ' Set or update FileName attribute
+                        Dim fileNameAttr As Xml.XmlAttribute = node.Attributes("FileName")
+                        If fileNameAttr Is Nothing Then
+                            fileNameAttr = xml.CreateAttribute("FileName")
+                            node.Attributes.Append(fileNameAttr)
+                        End If
+                        fileNameAttr.Value = fileName
+                    Catch ex As Exception
+                        ' Skip invalid base64 data
+                        imageCounter += 1
+                    End Try
                 End If
             Next
         End If
@@ -2661,21 +2667,27 @@ Public Class Coding
                     
                     Dim valueAttr As Xml.XmlAttribute = node.Attributes("Value")
                     If valueAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(valueAttr.Value) Then
-                        ' Clear the base64 image data
-                        valueAttr.Value = String.Empty
-                        
-                        ' Set or update FileName attribute
-                        Dim fileNameAttr As Xml.XmlAttribute = node.Attributes("FileName")
-                        If fileNameAttr Is Nothing Then
-                            fileNameAttr = xml.CreateAttribute("FileName")
-                            node.Attributes.Append(fileNameAttr)
-                        End If
-                        
-                        ' Use corresponding filename from list
-                        If fileNameIndex < fileNameList.Count Then
-                            fileNameAttr.Value = fileNameList(fileNameIndex)
-                            fileNameIndex += 1
-                        End If
+                        Try
+                            ' Get the image bytes from base64 to generate filename
+                            Dim imageBytes As Byte() = Convert.FromBase64String(valueAttr.Value)
+                            
+                            ' Generate filename with correct extension
+                            Dim fileName As String = GetImageFileName(node, imageCounter, imageBytes)
+                            imageCounter += 1
+                            
+                            ' Clear the base64 image data
+                            valueAttr.Value = String.Empty
+                            
+                            ' Set or update FileName attribute
+                            Dim fileNameAttr As Xml.XmlAttribute = node.Attributes("FileName")
+                            If fileNameAttr Is Nothing Then
+                                fileNameAttr = xml.CreateAttribute("FileName")
+                                node.Attributes.Append(fileNameAttr)
+                            End If
+                            fileNameAttr.Value = fileName
+                        Catch ex As Exception
+                            ' Skip invalid base64 data
+                        End Try
                     End If
                 End If
             Next
