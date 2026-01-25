@@ -2328,12 +2328,12 @@ Public Class Coding
             ' Load all image files into dictionary
             For Each entry As ZipArchiveEntry In archive.Entries
                 If Not entry.Name.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) AndAlso entry.Length > 0 Then
+                    ' Read directly into byte array
+                    Dim imageBytes(CInt(entry.Length) - 1) As Byte
                     Using stream As IO.Stream = entry.Open()
-                        Using ms As New IO.MemoryStream()
-                            stream.CopyTo(ms)
-                            images(entry.FullName) = ms.ToArray()
-                        End Using
+                        stream.Read(imageBytes, 0, imageBytes.Length)
                     End Using
+                    images(entry.FullName) = imageBytes
                 End If
             Next
         End Using
@@ -2400,25 +2400,36 @@ Public Class Coding
     ''' </summary>
     Private Function ConvertAvifToPng(ByVal avifData As Byte()) As Byte()
         ' Try to use ImageLoader to convert AVIF to PNG
+        Dim tempAvif As String = String.Empty
+        Dim img As Image = Nothing
         Try
             ' Save AVIF to temp file
-            Dim tempAvif As String = IO.Path.Combine(IO.Path.GetTempPath(), Guid.NewGuid().ToString() & ".avif")
+            tempAvif = IO.Path.Combine(IO.Path.GetTempPath(), Guid.NewGuid().ToString() & ".avif")
             IO.File.WriteAllBytes(tempAvif, avifData)
             
             ' Load with ImageLoader (supports AVIF)
-            Dim img As Image = ImageLoader.LoadImage(tempAvif)
+            img = ImageLoader.LoadImage(tempAvif)
             
             ' Convert to PNG bytes
             Using ms As New IO.MemoryStream()
                 img.Save(ms, Imaging.ImageFormat.Png)
-                Dim pngData As Byte() = ms.ToArray()
-                img.Dispose()
-                IO.File.Delete(tempAvif)
-                Return pngData
+                Return ms.ToArray()
             End Using
         Catch ex As Exception
             ' If conversion fails, return original data
             Return avifData
+        Finally
+            ' Cleanup resources
+            If img IsNot Nothing Then
+                img.Dispose()
+            End If
+            If Not String.IsNullOrEmpty(tempAvif) AndAlso IO.File.Exists(tempAvif) Then
+                Try
+                    IO.File.Delete(tempAvif)
+                Catch
+                    ' Ignore cleanup errors
+                End Try
+            End If
         End Try
     End Function
     

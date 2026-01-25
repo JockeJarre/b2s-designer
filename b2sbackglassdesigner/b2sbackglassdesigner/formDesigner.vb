@@ -1318,10 +1318,15 @@ Public Class formDesigner
                     .DefaultExt = "directb2s"
                     If .ShowDialog(Me) = DialogResult.OK Then
                         Dim extension As String = IO.Path.GetExtension(.FileName).ToLower()
+                        Dim success As Boolean = False
                         If extension = ".zipb2s" Then
-                            coding.CreateZipB2SFile(.FileName)
+                            success = coding.CreateZipB2SFile(.FileName)
                         Else
-                            coding.CreateDirectB2SFile()
+                            success = coding.CreateDirectB2SFile()
+                        End If
+                        
+                        If success Then
+                            MessageBox.Show("Backglass file created successfully.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information)
                         End If
                     End If
                 End With
