@@ -122,7 +122,7 @@ Public Class formDesigner
                     LoadB2B(file_path)
                 ElseIf (My.Computer.FileSystem.GetFileInfo(file_path).Extension = ".png") Then
                     If Backglass.currentTabPage IsNot Nothing Then
-                        Dim image As Image = Bitmap.FromFile(file_path).Copy(True)
+                        Dim image As Image = ImageLoader.LoadImage(file_path).Copy(True)
 
                         If image IsNot Nothing Then
                             If Not Backglass.currentTabPage.ShowIlluFrames Then
@@ -901,7 +901,7 @@ Public Class formDesigner
             If IO.File.Exists(Backglass.currentData.ImageFileName) Then
                 Undo.AddEntry(New Undo.UndoEntry(Undo.Type.ImageReloaded, Backglass.currentData.Image))
                 Dim oldimagesize As Size = Backglass.currentTabPage.Image.Size
-                Dim image As Image = Bitmap.FromFile(Backglass.currentData.ImageFileName).Copy(True).Resized(Backglass.currentData.Image.Size)
+                Dim image As Image = ImageLoader.LoadImage(Backglass.currentData.ImageFileName).Copy(True).Resized(Backglass.currentData.Image.Size)
                 'Backglass.currentBulbs.Resize(oldimagesize, image.Size)
                 'Backglass.currentScores.Resize(oldimagesize, image.Size)
                 Backglass.currentTabPage.Image() = image
@@ -924,7 +924,7 @@ Public Class formDesigner
                     If .ShowDialog(Me) = DialogResult.OK Then
                         Try
                             Undo.AddEntry(New Undo.UndoEntry(Undo.Type.IlluminationImageImported, Backglass.currentData.Image))
-                            Dim image As Image = Bitmap.FromFile(.FileName).Copy(True)
+                            Dim image As Image = ImageLoader.LoadImage(.FileName).Copy(True)
                             Backglass.currentData.Images.Insert(Images.eImageInfoType.Title4IlluminationImages, New Images.ImageInfo(Images.eImageInfoType.IlluminationImage, .FileName, image))
                         Catch
                             MessageBox.Show(My.Resources.MSG_CannotLoadPic, AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error)
@@ -946,7 +946,7 @@ Public Class formDesigner
                     If .ShowDialog(Me) = DialogResult.OK Then
                         Try
                             Undo.AddEntry(New Undo.UndoEntry(Undo.Type.DMDImageImported, Backglass.currentData.Image))
-                            Dim image As Image = Bitmap.FromFile(.FileName).Copy(True)
+                            Dim image As Image = ImageLoader.LoadImage(.FileName).Copy(True)
                             Backglass.currentTabPage.DMDImage(.FileName) = image
                             tscmbImage.SelectedIndex = 1
                             Backglass.currentData.Images.Insert(Images.eImageInfoType.Title4DMDImages, New Images.ImageInfo(Images.eImageInfoType.DMDImage, .FileName, image))
@@ -1563,7 +1563,7 @@ Public Class formDesigner
                 If .ShowDialog(Me) = DialogResult.OK Then
                     Try
                         Undo.AddEntry(New Undo.UndoEntry(Undo.Type.ImageImported, Backglass.currentData.Image))
-                        Dim image As Image = Bitmap.FromFile(.FileName).Copy(True)
+                        Dim image As Image = ImageLoader.LoadImage(.FileName).Copy(True)
                         If oldimagesize <> Nothing Then
                             Backglass.currentBulbs.Resize(oldimagesize, image.Size)
                             Backglass.currentScores.Resize(oldimagesize, image.Size)
