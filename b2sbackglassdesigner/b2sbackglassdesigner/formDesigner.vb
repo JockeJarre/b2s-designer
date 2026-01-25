@@ -1322,7 +1322,22 @@ Public Class formDesigner
                         If extension = ".zipb2s" Then
                             success = coding.CreateZipB2SFile(.FileName)
                         Else
+                            ' Create directB2S file
                             success = coding.CreateDirectB2SFile()
+                            If success Then
+                                ' Copy the file to the user-selected location if different from default
+                                Dim defaultPath As String = IO.Path.Combine(ProjectPath, Backglass.currentData.VSName & ".directb2s")
+                                If Not String.Equals(.FileName, defaultPath, StringComparison.OrdinalIgnoreCase) Then
+                                    Try
+                                        If IO.File.Exists(.FileName) Then
+                                            IO.File.Delete(.FileName)
+                                        End If
+                                        IO.File.Copy(defaultPath, .FileName)
+                                    Catch ex As Exception
+                                        MessageBox.Show(String.Format("File created at {0} but could not be copied to selected location: {1}", defaultPath, ex.Message), AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                                    End Try
+                                End If
+                            End If
                         End If
                         
                         If success Then
