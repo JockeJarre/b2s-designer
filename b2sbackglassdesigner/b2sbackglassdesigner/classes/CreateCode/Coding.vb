@@ -2384,10 +2384,15 @@ Public Class Coding
                         imageData = ConvertAvifToPng(imageData)
                     End If
                     
-                    ' Update or create Image attribute with base64 data
-                    Dim imageAttr As Xml.XmlAttribute = node.Attributes("Image")
+                    ' Determine which attribute to use based on node type
+                    ' Nodes like BackglassImage, DMDImage use "Value" attribute
+                    ' Nodes like Bulb use "Image" attribute
+                    Dim attributeName As String = If(IsImageNodeWithValueAttribute(node.Name), "Value", "Image")
+                    
+                    ' Update or create the appropriate attribute with base64 data
+                    Dim imageAttr As Xml.XmlAttribute = node.Attributes(attributeName)
                     If imageAttr Is Nothing Then
-                        imageAttr = xml.CreateAttribute("Image")
+                        imageAttr = xml.CreateAttribute(attributeName)
                         node.Attributes.Append(imageAttr)
                     End If
                     imageAttr.Value = Convert.ToBase64String(imageData, Base64FormattingOptions.InsertLineBreaks)
