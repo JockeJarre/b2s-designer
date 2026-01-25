@@ -294,7 +294,7 @@ Public Class B2SFile
                             ' Set or update FileName attribute
                             Dim fileNameAttr = node.Attributes("FileName")
                             If fileNameAttr Is Nothing Then
-                                fileNameAttr = XmlDocument.CreateAttribute("FileName")
+                                fileNameAttr = xmlDoc.CreateAttribute("FileName")
                                 node.Attributes.Append(fileNameAttr)
                             End If
                             fileNameAttr.Value = fileName
@@ -350,7 +350,7 @@ Public Class B2SFile
                             ' Set or update FileName attribute
                             Dim fileNameAttr = node.Attributes("FileName")
                             If fileNameAttr Is Nothing Then
-                                fileNameAttr = XmlDocument.CreateAttribute("FileName")
+                                fileNameAttr = xmlDoc.CreateAttribute("FileName")
                                 node.Attributes.Append(fileNameAttr)
                             End If
                             fileNameAttr.Value = fileName
