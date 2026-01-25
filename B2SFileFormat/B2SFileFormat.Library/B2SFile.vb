@@ -254,13 +254,7 @@ Public Class B2SFile
                         ' Determine which attribute to use based on node type
                         ' Nodes like BackglassImage, DMDImage use "Value" attribute
                         ' Nodes like Bulb use "Image" attribute
-                        Dim attributeName As String = "Image"
-                        Dim nodeName = node.Name.ToLower()
-                        If nodeName = "backglassimage" OrElse nodeName = "backglassonimage" OrElse nodeName = "backglassoffimage" OrElse
-                           nodeName = "dmdimage" OrElse nodeName = "illuminationimage" OrElse nodeName = "thumbnailimage" OrElse
-                           (nodeName = "image" AndAlso node.ParentNode IsNot Nothing AndAlso node.ParentNode.Name.ToLower() = "images") Then
-                            attributeName = "Value"
-                        End If
+                        Dim attributeName As String = If(UsesValueAttribute(node), "Value", "Image")
 
                         ' Update or create the appropriate attribute with base64 data
                         Dim imageAttr = node.Attributes(attributeName)
@@ -583,5 +577,33 @@ Public Class B2SFile
             End Try
 
             Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' Determines if an XML node uses "Value" attribute for image data (vs "Image" attribute)
+        ''' </summary>
+        Private Shared Function UsesValueAttribute(node As XmlNode) As Boolean
+            If node Is Nothing Then Return False
+            
+            Dim nodeName = node.Name.ToLower()
+            
+            ' Main image nodes use "Value" attribute
+            If nodeName = "backglassimage" OrElse 
+               nodeName = "backglassonimage" OrElse 
+               nodeName = "backglassoffimage" OrElse
+               nodeName = "dmdimage" OrElse 
+               nodeName = "illuminationimage" OrElse 
+               nodeName = "thumbnailimage" Then
+                Return True
+            End If
+            
+            ' Reel images under Reels/Images also use "Value" attribute
+            If nodeName = "image" AndAlso node.ParentNode IsNot Nothing AndAlso 
+               node.ParentNode.Name.ToLower() = "images" Then
+                Return True
+            End If
+            
+            ' Everything else (Bulb, etc.) uses "Image" attribute
+            Return False
         End Function
 End Class
