@@ -2529,6 +2529,32 @@ Public Class Coding
                         ' Skip invalid base64 data
                     End Try
                 End If
+                
+                ' Also check for OffImage attribute
+                Dim offImageAttr As Xml.XmlAttribute = node.Attributes("OffImage")
+                If offImageAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(offImageAttr.Value) Then
+                    Try
+                        Dim base64Data As String = offImageAttr.Value
+                        Dim imageBytes As Byte() = Convert.FromBase64String(base64Data)
+                        
+                        ' Create a temporary node for filename generation with "off" suffix
+                        Dim tempNode As Xml.XmlNode = node.Clone()
+                        Dim nameAttr As Xml.XmlAttribute = tempNode.Attributes("Name")
+                        If nameAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(nameAttr.Value) Then
+                            nameAttr.Value = nameAttr.Value & "_off"
+                        End If
+                        
+                        Dim fileName As String = GetImageFileName(tempNode, imageCounter, imageBytes)
+                        imageCounter += 1
+                        
+                        ' Store in dictionary if not already there
+                        If Not images.ContainsKey(fileName) Then
+                            images(fileName) = imageBytes
+                        End If
+                    Catch ex As Exception
+                        ' Skip invalid base64 data
+                    End Try
+                End If
             Next
         End If
         
@@ -2650,6 +2676,31 @@ Public Class Coding
                             node.Attributes.Append(fileNameAttr)
                         End If
                         fileNameAttr.Value = fileName
+                    Catch ex As Exception
+                        ' Skip invalid base64 data
+                        imageCounter += 1
+                    End Try
+                End If
+                
+                ' Also process OffImage attribute
+                Dim offImageAttr As Xml.XmlAttribute = node.Attributes("OffImage")
+                If offImageAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(offImageAttr.Value) Then
+                    Try
+                        ' Get the image bytes from base64 to generate filename
+                        Dim imageBytes As Byte() = Convert.FromBase64String(offImageAttr.Value)
+                        
+                        ' Create a temporary node for filename generation with "off" suffix
+                        Dim tempNode As Xml.XmlNode = node.Clone()
+                        Dim nameAttr As Xml.XmlAttribute = tempNode.Attributes("Name")
+                        If nameAttr IsNot Nothing AndAlso Not String.IsNullOrEmpty(nameAttr.Value) Then
+                            nameAttr.Value = nameAttr.Value & "_off"
+                        End If
+                        
+                        Dim fileName As String = GetImageFileName(tempNode, imageCounter, imageBytes)
+                        imageCounter += 1
+                        
+                        ' Clear the OffImage data
+                        offImageAttr.Value = String.Empty
                     Catch ex As Exception
                         ' Skip invalid base64 data
                         imageCounter += 1
