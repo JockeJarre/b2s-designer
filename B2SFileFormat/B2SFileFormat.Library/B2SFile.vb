@@ -291,11 +291,13 @@ Public Class B2SFile
                             ' Replace base64 data with filename reference
                             imageAttr.Value = ""
 
-                            ' Update FileName attribute if it exists
+                            ' Set or update FileName attribute
                             Dim fileNameAttr = node.Attributes("FileName")
-                            If fileNameAttr IsNot Nothing Then
-                                fileNameAttr.Value = fileName
+                            If fileNameAttr Is Nothing Then
+                                fileNameAttr = XmlDocument.CreateAttribute("FileName")
+                                node.Attributes.Append(fileNameAttr)
                             End If
+                            fileNameAttr.Value = fileName
                         Catch ex As Exception
                             ' Skip invalid base64 data
                             imageCounter += 1
@@ -345,11 +347,13 @@ Public Class B2SFile
                             ' Replace base64 data with filename reference
                             valueAttr.Value = ""
 
-                            ' Update FileName attribute if it exists
+                            ' Set or update FileName attribute
                             Dim fileNameAttr = node.Attributes("FileName")
-                            If fileNameAttr IsNot Nothing Then
-                                fileNameAttr.Value = fileName
+                            If fileNameAttr Is Nothing Then
+                                fileNameAttr = XmlDocument.CreateAttribute("FileName")
+                                node.Attributes.Append(fileNameAttr)
                             End If
+                            fileNameAttr.Value = fileName
                         Catch ex As Exception
                             ' Skip invalid base64 data (Value might not be base64)
                             ' Don't increment counter since this might not be image data
