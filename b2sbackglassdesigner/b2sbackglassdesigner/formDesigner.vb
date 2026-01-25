@@ -537,7 +537,7 @@ Public Class formDesigner
     Private Sub ImportBackglassFile_Click(sender As System.Object, e As System.EventArgs) Handles tsmiImportBackglassFile.Click
         Using filedialog As OpenFileDialog = New OpenFileDialog
             With filedialog
-                .Filter = "'directB2S' backglass file (*.directb2s)|*.directb2s|ALL (*.*)|*.*"
+                .Filter = "Backglass files (*.directb2s;*.zipb2s)|*.directb2s;*.zipb2s|'directB2S' backglass file (*.directb2s)|*.directb2s|'zipB2S' backglass file (*.zipb2s)|*.zipb2s|ALL (*.*)|*.*"
                 .FileName = String.Empty
                 .InitialDirectory = If(LatestImportDirectory.Length, LatestImportDirectory, BackglassProjectsPath)
                 If .ShowDialog(Me) = DialogResult.OK Then
@@ -1310,7 +1310,27 @@ Public Class formDesigner
     Private Sub CreateDirectAccessBackglassCodeFile_Click(sender As System.Object, e As System.EventArgs) Handles tsmiCreateDirectAccessBackglassCodeFile.Click
 
         If Backglass.currentTabPage IsNot Nothing Then
-            coding.CreateDirectB2SFile()
+            Using filedialog As SaveFileDialog = New SaveFileDialog
+                With filedialog
+                    .Filter = "Backglass files|*.directb2s;*.zipb2s|'directB2S' backglass file (*.directb2s)|*.directb2s|'zipB2S' backglass file (*.zipb2s)|*.zipb2s"
+                    .FileName = Backglass.currentData.VSName & ".directb2s"
+                    .InitialDirectory = ProjectPath
+                    .DefaultExt = "directb2s"
+                    If .ShowDialog(Me) = DialogResult.OK Then
+                        Dim extension As String = IO.Path.GetExtension(.FileName).ToLower()
+                        Dim success As Boolean = False
+                        If extension = ".zipb2s" Then
+                            success = coding.CreateZipB2SFile(.FileName)
+                        Else
+                            success = coding.CreateDirectB2SFile()
+                        End If
+                        
+                        If success Then
+                            MessageBox.Show("Backglass file created successfully.", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Information)
+                        End If
+                    End If
+                End With
+            End Using
         End If
 
     End Sub

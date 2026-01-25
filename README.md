@@ -1,6 +1,18 @@
 # B2S (Backglass 2nd Screen) Designer
 
-It allows you to edit and create directB2S backglasses for the [B2S.Server](https://github.com/vpinball/b2s-backglass) using a "WYSIWYG" editor.
+It allows you to edit and create directB2S and zipB2S backglasses for the [B2S.Server](https://github.com/vpinball/b2s-backglass) using a "WYSIWYG" editor.
+
+## Features
+
+- **Visual Editor**: WYSIWYG interface for designing backglasses
+- **Multiple Formats**: Support for directB2S and zipB2S file formats
+  - **directB2S**: Traditional XML format with embedded base64 images
+  - **zipB2S**: New ZIP-based format with 25-50% smaller file sizes
+- **AVIF Support**: Import AVIF images in addition to PNG, JPEG, GIF, and BMP
+- **Animation Support**: Create animations for bulbs and other elements
+- **VPinMAME Integration**: Direct ROM communication for authentic pinball behavior
+
+See [AVIF_AND_ZIPB2S.md](AVIF_AND_ZIPB2S.md) for detailed information about the zipB2S format and AVIF support.
 
 Documentation is available in the package as html-help but can also be read [online here](https://htmlpreview.github.io/?https://raw.githubusercontent.com/vpinball/b2s-designer/master/b2sbackglassdesigner/b2sbackglassdesigner/htmlhelp/Introduction.htm).
 

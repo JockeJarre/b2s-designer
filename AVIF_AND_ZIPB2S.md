@@ -112,7 +112,78 @@ The B2SConverter tool has been tested with sample files and successfully:
 ## Future Enhancements
 
 Potential future improvements:
-- Add zipb2s export option directly in the designer UI
-- Support for loading zipb2s files in the designer
+- ~~Add zipb2s export option directly in the designer UI~~ ✅ **COMPLETED**
+- ~~Support for loading zipb2s files in the designer~~ ✅ **COMPLETED**
 - Batch conversion tool with GUI
 - Image optimization during conversion
+
+## UI Integration (v1.27+)
+
+Starting with version 1.27, the B2S Designer UI includes built-in support for zipB2S files:
+
+### Creating zipB2S Files
+
+1. Open your backglass project in B2S Designer
+2. Go to **Backglass → Create backglass file**
+3. In the save dialog, choose file type:
+   - Select "directB2S backglass file (*.directb2s)" for traditional format
+   - Select "zipB2S backglass file (*.zipb2s)" for compressed format
+4. Choose your filename and click Save
+
+The zipB2S format will automatically:
+- Extract images from base64 encoding
+- Store them as separate files in the ZIP archive
+- Reduce overall file size by 25-50%
+
+### Importing zipB2S Files
+
+1. Go to **File → Import backglass file**
+2. In the open dialog, select either:
+   - .directb2s files (traditional format)
+   - .zipb2s files (compressed format)
+3. The designer automatically detects the format and loads it correctly
+
+When importing a zipB2S file:
+- Images are automatically extracted from the ZIP archive
+- Embedded as base64 in the designer's working format
+- AVIF images are automatically converted to PNG for compatibility
+
+### AVIF Support
+
+AVIF image format is supported when:
+- Importing background images
+- Importing illumination images
+- Importing DMD images
+- Dragging and dropping files onto the designer
+
+**Note:** AVIF support requires the SixLabors.ImageSharp NuGet package to be installed in the B2SBackglassDesigner project.
+
+## Testing
+
+### Manual Testing Procedure
+
+To test the zipB2S functionality:
+
+1. **Create a test backglass:**
+   - Create a simple backglass with at least one background image
+   - Add a few illumination elements
+   
+2. **Export as zipB2S:**
+   - Use "Backglass → Create backglass file"
+   - Save as .zipb2s format
+   - Verify the file is created
+   
+3. **Verify ZIP contents:**
+   - Rename .zipb2s to .zip
+   - Extract and verify it contains:
+     - One XML file
+     - Image files (PNG, JPG, etc.)
+   
+4. **Import the zipB2S:**
+   - Use "File → Import backglass file"
+   - Select the .zipb2s file you created
+   - Verify all elements load correctly
+   
+5. **Round-trip test:**
+   - Export the imported backglass as .directb2s
+   - Compare with original to ensure no data loss
