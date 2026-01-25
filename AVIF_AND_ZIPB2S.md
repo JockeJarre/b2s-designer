@@ -55,7 +55,16 @@ B2SConverter mybackglass.directb2s mybackglass.zipb2s
 
 # Convert zipb2s back to directb2s
 B2SConverter mybackglass.zipb2s mybackglass.directb2s
+
+# Convert directb2s to zipb2s with PNG to AVIF conversion
+B2SConverter --convert-to-avif mybackglass.directb2s mybackglass.zipb2s
 ```
+
+**AVIF Image Handling:**
+- AVIF images in zipb2s files are preserved in their original format
+- When converting zipb2s to directb2s, AVIF images are automatically converted to PNG (since base64 embedding works best with standard formats)
+- Use the `--convert-to-avif` flag to convert PNG images to AVIF when creating zipb2s files for better compression
+- AVIF conversion requires ImageSharp library with AVIF encoder support
 
 The converter is located in `/B2SFileFormat/B2SConverter/`
 

@@ -40,7 +40,7 @@ Next
 
 ### B2SConverter
 
-A command-line tool for converting between directb2s and zipb2s formats.
+A command-line tool for converting between directb2s and zipb2s formats, with support for PNG to AVIF conversion.
 
 **Usage:**
 
@@ -51,14 +51,25 @@ dotnet B2SConverter.dll input.directb2s output.zipb2s
 # Convert from zipb2s to directb2s
 dotnet B2SConverter.dll input.zipb2s output.directb2s
 
+# Convert PNG images to AVIF when creating zipb2s
+dotnet B2SConverter.dll --convert-to-avif input.directb2s output.zipb2s
+dotnet B2SConverter.dll -a input.directb2s output.zipb2s
+
 # On Windows with .NET Framework
 B2SConverter.exe input.directb2s output.zipb2s
 ```
 
+**AVIF Image Handling:**
+- AVIF images in zipb2s files are preserved in their original format
+- When converting zipb2s to directb2s, AVIF images are automatically converted to PNG
+- Use `--convert-to-avif` or `-a` to convert PNG images to AVIF format in zipb2s
+- AVIF provides better compression than PNG (typically 30-50% smaller)
+- Requires ImageSharp library with AVIF encoder support
+
 **Output Example:**
 
 ```
-B2S File Format Converter v1.0
+B2S File Format Converter v1.1
 Converts between directb2s and zipb2s formats
 
 Input:  test.directb2s
