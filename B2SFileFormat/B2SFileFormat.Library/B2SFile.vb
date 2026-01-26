@@ -483,18 +483,25 @@ Public Class B2SFile
                 Dim imageSharpAssembly = System.Reflection.Assembly.Load("SixLabors.ImageSharp")
                 Dim imageType = imageSharpAssembly.GetType("SixLabors.ImageSharp.Image")
 
-                ' Load the AVIF image from bytes
-                Dim loadMethod = imageType.GetMethod("Load", New Type() {GetType(Byte())})
-                If loadMethod Is Nothing Then
-                    ' Try stream-based loading
-                    Dim ms = New MemoryStream(avifBytes)
-                    loadMethod = imageType.GetMethod("Load", New Type() {GetType(Stream)})
-                    If loadMethod IsNot Nothing Then
-                        Dim imageSharpImage = loadMethod.Invoke(Nothing, New Object() {ms})
-                        Return ConvertImageSharpToPngBytes(imageSharpImage)
+                ' Load the AVIF image from stream (use stream-based loading to avoid ambiguous match)
+                Dim ms = New MemoryStream(avifBytes)
+                
+                ' Get the non-generic Load method with specific binding flags to avoid ambiguity
+                Dim loadMethods = imageType.GetMethods(System.Reflection.BindingFlags.Public Or System.Reflection.BindingFlags.Static)
+                Dim loadMethod As System.Reflection.MethodInfo = Nothing
+                
+                For Each method In loadMethods
+                    If method.Name = "Load" AndAlso Not method.IsGenericMethod Then
+                        Dim parameters = method.GetParameters()
+                        If parameters.Length = 1 AndAlso parameters(0).ParameterType Is GetType(Stream) Then
+                            loadMethod = method
+                            Exit For
+                        End If
                     End If
-                Else
-                    Dim imageSharpImage = loadMethod.Invoke(Nothing, New Object() {avifBytes})
+                Next
+                
+                If loadMethod IsNot Nothing Then
+                    Dim imageSharpImage = loadMethod.Invoke(Nothing, New Object() {ms})
                     Return ConvertImageSharpToPngBytes(imageSharpImage)
                 End If
             Catch ex As Exception
@@ -515,9 +522,22 @@ Public Class B2SFile
                 Dim imageSharpAssembly = System.Reflection.Assembly.Load("SixLabors.ImageSharp")
                 Dim imageType = imageSharpAssembly.GetType("SixLabors.ImageSharp.Image")
 
-                ' Load the PNG image from bytes
+                ' Load the PNG image from stream
                 Using ms = New MemoryStream(pngBytes)
-                    Dim loadMethod = imageType.GetMethod("Load", New Type() {GetType(Stream)})
+                    ' Get the non-generic Load method with specific binding flags to avoid ambiguity
+                    Dim loadMethods = imageType.GetMethods(System.Reflection.BindingFlags.Public Or System.Reflection.BindingFlags.Static)
+                    Dim loadMethod As System.Reflection.MethodInfo = Nothing
+                    
+                    For Each method In loadMethods
+                        If method.Name = "Load" AndAlso Not method.IsGenericMethod Then
+                            Dim parameters = method.GetParameters()
+                            If parameters.Length = 1 AndAlso parameters(0).ParameterType Is GetType(Stream) Then
+                                loadMethod = method
+                                Exit For
+                            End If
+                        End If
+                    Next
+                    
                     If loadMethod IsNot Nothing Then
                         Dim imageSharpImage = loadMethod.Invoke(Nothing, New Object() {ms})
                         Return ConvertImageSharpToAvifBytes(imageSharpImage)
@@ -537,8 +557,20 @@ Public Class B2SFile
         Private Function ConvertImageSharpToPngBytes(imageSharpImage As Object) As Byte()
             Try
                 Using ms = New MemoryStream()
-                    ' Get the SaveAsPng method
-                    Dim saveMethod = imageSharpImage.GetType().GetMethod("SaveAsPng", New Type() {GetType(Stream)})
+                    ' Get the SaveAsPng method with specific binding flags to avoid ambiguity
+                    Dim saveMethods = imageSharpImage.GetType().GetMethods(System.Reflection.BindingFlags.Public Or System.Reflection.BindingFlags.Instance)
+                    Dim saveMethod As System.Reflection.MethodInfo = Nothing
+                    
+                    For Each method In saveMethods
+                        If method.Name = "SaveAsPng" AndAlso Not method.IsGenericMethod Then
+                            Dim parameters = method.GetParameters()
+                            If parameters.Length = 1 AndAlso parameters(0).ParameterType Is GetType(Stream) Then
+                                saveMethod = method
+                                Exit For
+                            End If
+                        End If
+                    Next
+                    
                     If saveMethod IsNot Nothing Then
                         saveMethod.Invoke(imageSharpImage, New Object() {ms})
                         Return ms.ToArray()
@@ -565,8 +597,23 @@ Public Class B2SFile
                     If encodersType IsNot Nothing Then
                         Dim encoder = Activator.CreateInstance(encodersType)
                         
-                        ' Get the Save method that takes a Stream and encoder
-                        Dim saveMethod = imageSharpImage.GetType().GetMethod("Save", New Type() {GetType(Stream), encodersType})
+                        ' Get the Save method that takes a Stream and encoder with specific binding flags
+                        Dim saveMethods = imageSharpImage.GetType().GetMethods(System.Reflection.BindingFlags.Public Or System.Reflection.BindingFlags.Instance)
+                        Dim saveMethod As System.Reflection.MethodInfo = Nothing
+                        
+                        For Each method In saveMethods
+                            If method.Name = "Save" AndAlso Not method.IsGenericMethod Then
+                                Dim parameters = method.GetParameters()
+                                If parameters.Length = 2 AndAlso parameters(0).ParameterType Is GetType(Stream) Then
+                                    ' Check if second parameter is compatible with encoder type
+                                    If parameters(1).ParameterType.IsAssignableFrom(encodersType) Then
+                                        saveMethod = method
+                                        Exit For
+                                    End If
+                                End If
+                            End If
+                        Next
+                        
                         If saveMethod IsNot Nothing Then
                             saveMethod.Invoke(imageSharpImage, New Object() {ms, encoder})
                             Return ms.ToArray()
