@@ -605,8 +605,8 @@ Public Class B2SFile
                             If method.Name = "Save" AndAlso Not method.IsGenericMethod Then
                                 Dim parameters = method.GetParameters()
                                 If parameters.Length = 2 AndAlso parameters(0).ParameterType Is GetType(Stream) Then
-                                    ' Check if second parameter is compatible with encoder type
-                                    If parameters(1).ParameterType.IsAssignableFrom(encodersType) Then
+                                    ' Check if encoder type is assignable to the second parameter type
+                                    If parameters(1).ParameterType.IsAssignableFrom(encodersType) OrElse encodersType.IsAssignableFrom(parameters(1).ParameterType) Then
                                         saveMethod = method
                                         Exit For
                                     End If
