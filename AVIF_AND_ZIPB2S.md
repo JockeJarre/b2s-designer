@@ -10,14 +10,11 @@ B2S Designer now supports loading AVIF (AV1 Image File Format) images in additio
 
 #### Requirements
 
-AVIF support requires the SixLabors.ImageSharp library. To enable AVIF support:
+AVIF support requires the SixLabors.ImageSharp library, which is included in the B2S Designer distribution package.
 
-1. Add the SixLabors.ImageSharp NuGet package to the B2SBackglassDesigner project:
-   - In Visual Studio: Right-click on the project → Manage NuGet Packages
-   - Search for "SixLabors.ImageSharp" and install it
-   - Or use Package Manager Console: `Install-Package SixLabors.ImageSharp`
-
-2. The ImageLoader class will automatically detect if ImageSharp is available and use it for loading AVIF files
+- The SixLabors.ImageSharp.dll and its dependencies are automatically included in the release package
+- The ImageLoader class will automatically detect if ImageSharp is available and use it for loading AVIF files
+- No additional installation steps are required for AVIF support when using the official release builds
 
 #### Usage
 
@@ -64,9 +61,9 @@ B2SConverter --convert-to-avif mybackglass.directb2s mybackglass.zipb2s
 - AVIF images in zipb2s files are preserved in their original format
 - When converting zipb2s to directb2s, AVIF images are automatically converted to PNG (since base64 embedding works best with standard formats)
 - Use the `--convert-to-avif` flag to convert PNG images to AVIF when creating zipb2s files for better compression
-- AVIF conversion requires ImageSharp library with AVIF encoder support
+- AVIF conversion requires ImageSharp library with AVIF encoder support (included in the distribution package)
 
-The converter is located in `/B2SFileFormat/B2SConverter/`
+The converter is located in `/B2SFileFormat/B2SConverter/` and is included in the B2S Designer distribution package with all required dependencies.
 
 ## B2S File Format Library
 
@@ -156,7 +153,7 @@ AVIF image format is supported when:
 - Importing DMD images
 - Dragging and dropping files onto the designer
 
-**Note:** AVIF support requires the SixLabors.ImageSharp NuGet package to be installed in the B2SBackglassDesigner project.
+**Note:** AVIF support requires the SixLabors.ImageSharp library, which is included in the B2S Designer distribution package.
 
 ## Testing
 

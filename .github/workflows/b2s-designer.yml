@@ -60,6 +60,12 @@ jobs:
           cp b2sbackglassdesigner/b2sbackglassdesigner/bin/x64/${{ matrix.config }}/B2SBackglassDesigner.exe tmp
           cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/B2SConverter.exe tmp
           cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/B2SFileFormat.Library.dll tmp
+          cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/SixLabors.ImageSharp.dll tmp
+          cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/System.Buffers.dll tmp
+          cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/System.Memory.dll tmp
+          cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/System.Numerics.Vectors.dll tmp
+          cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/System.Runtime.CompilerServices.Unsafe.dll tmp
+          cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/System.Text.Encoding.CodePages.dll tmp
           if [[ "${{ matrix.config }}" == "Debug" ]]; then
              cp B2SVPinMAMEStarter/bin/x64/${{ matrix.config }}/B2SVPinMAMEStarter.pdb tmp
              cp b2sbackglassdesigner/b2sbackglassdesigner/bin/x64/${{ matrix.config }}/B2SBackglassDesigner.pdb tmp

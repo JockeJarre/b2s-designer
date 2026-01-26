@@ -325,3 +325,6 @@ B2SVPinMAMEStarter.exe
 *.bak
 *.swp
 *.tmp
+
+# GitHub Actions build artifact temporary directory
+/tmp/
