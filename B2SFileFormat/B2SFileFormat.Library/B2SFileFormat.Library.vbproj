@@ -13,7 +13,16 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <!-- Use ImageSharp 2.1.11 for .NET Framework 4.8 (no AVIF support) -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="SixLabors.ImageSharp" Version="2.1.11" />
+  </ItemGroup>
+
+  <!-- Use ImageSharp 3.1.12 for .NET 8.0 (with AVIF support) -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 
   <ItemGroup>

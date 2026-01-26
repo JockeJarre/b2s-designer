@@ -10,12 +10,23 @@ B2S Designer now supports loading AVIF (AV1 Image File Format) images in additio
 
 #### Requirements
 
-AVIF support requires the SixLabors.ImageSharp library, which is included in the B2S Designer distribution package.
+AVIF support in B2S Designer has different capabilities depending on the component:
 
-- SixLabors.ImageSharp and its dependencies are embedded in B2SFileFormat.Library.dll using Costura.Fody
-- The ImageLoader class will automatically detect if ImageSharp is available and use it for loading AVIF files
-- No additional installation steps are required for AVIF support when using the official release builds
-- The SixLabors.ImageSharp license (Apache-2.0 / Six Labors Split License) is included in the distribution package
+**B2SBackglassDesigner (Windows Forms Application):**
+- Uses .NET Framework 4.8 with SixLabors.ImageSharp 2.1.11 (embedded via Costura.Fody)
+- **AVIF Import**: ❌ NOT supported (ImageSharp 2.1.x lacks AVIF decoder)
+- **Note**: AVIF images cannot be imported into the designer due to ImageSharp version limitations
+
+**B2SConverter for Converting zipb2s Files:**
+- **net48 version** (B2SConverter.exe): Uses ImageSharp 2.1.11 - ❌ NO AVIF support
+- **net8.0 version** (net8.0/B2SConverter): Uses ImageSharp 3.1.12 - ✅ FULL AVIF support
+- For converting files with AVIF images, use the net8.0 version (requires .NET 8.0 Runtime)
+- See `B2SConverter.AVIF.README.md` in the B2SFileFormat folder for detailed instructions
+
+**Why the limitation?**
+SixLabors.ImageSharp 3.0+ includes AVIF support but only targets .NET 6.0+, not .NET Framework 4.8. The B2SBackglassDesigner requires .NET Framework 4.8 (Windows Forms), so it uses ImageSharp 2.1.11 which lacks AVIF decoding.
+
+The SixLabors.ImageSharp license (Apache-2.0 / Six Labors Split License) is included in the distribution package.
 
 #### Usage
 

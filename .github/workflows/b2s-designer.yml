@@ -42,6 +42,7 @@ jobs:
       - name: Build B2SConverter
         run: |
           dotnet build B2SFileFormat/B2SConverter/B2SConverter.vbproj -c ${{ matrix.config }} -f net48
+          dotnet build B2SFileFormat/B2SConverter/B2SConverter.vbproj -c ${{ matrix.config }} -f net8.0
       - name: Cache html-help-workshop
         uses: actions/cache@v4
         with:
@@ -58,14 +59,22 @@ jobs:
           mkdir tmp  
           cp B2SVPinMAMEStarter/bin/x64/${{ matrix.config }}/B2SVPinMAMEStarter.exe tmp
           cp b2sbackglassdesigner/b2sbackglassdesigner/bin/x64/${{ matrix.config }}/B2SBackglassDesigner.exe tmp
+          # Include both net48 and net8.0 versions of B2SConverter
+          # net48 version for compatibility, net8.0 version for AVIF support
           cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/B2SConverter.exe tmp
-          # Copy B2SFileFormat.Library.dll (with embedded dependencies via Costura.Fody)
           cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/B2SFileFormat.Library.dll tmp
+          mkdir tmp/net8.0
+          cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net8.0/B2SConverter.dll tmp/net8.0/
+          cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net8.0/B2SConverter.exe tmp/net8.0/ || true
+          cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net8.0/B2SConverter.runtimeconfig.json tmp/net8.0/ || true
+          cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net8.0/B2SFileFormat.Library.dll tmp/net8.0/
           if [[ "${{ matrix.config }}" == "Debug" ]]; then
              cp B2SVPinMAMEStarter/bin/x64/${{ matrix.config }}/B2SVPinMAMEStarter.pdb tmp
              cp b2sbackglassdesigner/b2sbackglassdesigner/bin/x64/${{ matrix.config }}/B2SBackglassDesigner.pdb tmp
              cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/B2SConverter.pdb tmp
              cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/B2SFileFormat.Library.pdb tmp
+             cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net8.0/B2SConverter.pdb tmp/net8.0/ || true
+             cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net8.0/B2SFileFormat.Library.pdb tmp/net8.0/ || true
           fi
           cp b2sbackglassdesigner/b2sbackglassdesigner/htmlhelp/B2SBackglassDesigner.chm tmp || true
           cp license.txt tmp

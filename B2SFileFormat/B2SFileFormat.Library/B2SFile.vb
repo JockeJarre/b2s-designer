@@ -483,6 +483,15 @@ Public Class B2SFile
                 Dim imageSharpAssembly = System.Reflection.Assembly.Load("SixLabors.ImageSharp")
                 Dim imageType = imageSharpAssembly.GetType("SixLabors.ImageSharp.Image")
 
+                ' Check if AVIF decoder is available (requires ImageSharp 3.0+)
+                ' ImageSharp 2.x does not include AVIF support
+                Dim avifDecoderType = imageSharpAssembly.GetType("SixLabors.ImageSharp.Formats.Avif.AvifDecoder")
+                If avifDecoderType Is Nothing Then
+                    ' AVIF not supported in this version
+                    Console.WriteLine("Warning: AVIF decoding requires SixLabors.ImageSharp 3.0+, but this version does not support AVIF")
+                    Return avifBytes
+                End If
+
                 ' Load the AVIF image from stream (use stream-based loading to avoid ambiguous match)
                 Dim ms = New MemoryStream(avifBytes)
                 
@@ -504,6 +513,10 @@ Public Class B2SFile
                     Dim imageSharpImage = loadMethod.Invoke(Nothing, New Object() {ms})
                     Return ConvertImageSharpToPngBytes(imageSharpImage)
                 End If
+            Catch ex As System.Reflection.TargetInvocationException
+                ' Unwrap the inner exception to get the actual error
+                Dim innerMsg = If(ex.InnerException IsNot Nothing, ex.InnerException.Message, ex.Message)
+                Console.WriteLine($"Warning: Failed to convert AVIF to PNG: {innerMsg}")
             Catch ex As Exception
                 ' If conversion fails, return original bytes
                 Console.WriteLine($"Warning: Failed to convert AVIF to PNG: {ex.Message}")
