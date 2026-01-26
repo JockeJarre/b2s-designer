@@ -59,10 +59,8 @@ jobs:
           cp B2SVPinMAMEStarter/bin/x64/${{ matrix.config }}/B2SVPinMAMEStarter.exe tmp
           cp b2sbackglassdesigner/b2sbackglassdesigner/bin/x64/${{ matrix.config }}/B2SBackglassDesigner.exe tmp
           cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/B2SConverter.exe tmp
-          # Copy B2SConverter dependencies (including SixLabors.ImageSharp for AVIF support)
-          for dll in B2SFileFormat.Library.dll SixLabors.ImageSharp.dll System.Buffers.dll System.Memory.dll System.Numerics.Vectors.dll System.Runtime.CompilerServices.Unsafe.dll System.Text.Encoding.CodePages.dll; do
-            cp "B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/$dll" tmp
-          done
+          # Copy B2SFileFormat.Library.dll (with embedded dependencies via Costura.Fody)
+          cp B2SFileFormat/B2SConverter/bin/${{ matrix.config }}/net48/B2SFileFormat.Library.dll tmp
           if [[ "${{ matrix.config }}" == "Debug" ]]; then
              cp B2SVPinMAMEStarter/bin/x64/${{ matrix.config }}/B2SVPinMAMEStarter.pdb tmp
              cp b2sbackglassdesigner/b2sbackglassdesigner/bin/x64/${{ matrix.config }}/B2SBackglassDesigner.pdb tmp
@@ -72,6 +70,7 @@ jobs:
           cp b2sbackglassdesigner/b2sbackglassdesigner/htmlhelp/B2SBackglassDesigner.chm tmp || true
           cp license.txt tmp
           cp Changelog.txt tmp
+          cp B2SFileFormat/SixLabors.ImageSharp.LICENSE.txt tmp
       - uses: actions/upload-artifact@v4
         with:
          name: B2S.Designer-${{ steps.version.outputs.tag }}-${{ matrix.config }}-win-AnyCPU

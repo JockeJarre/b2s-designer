@@ -12,9 +12,10 @@ B2S Designer now supports loading AVIF (AV1 Image File Format) images in additio
 
 AVIF support requires the SixLabors.ImageSharp library, which is included in the B2S Designer distribution package.
 
-- The SixLabors.ImageSharp.dll and its dependencies are automatically included in the release package
+- SixLabors.ImageSharp and its dependencies are embedded in B2SFileFormat.Library.dll using Costura.Fody
 - The ImageLoader class will automatically detect if ImageSharp is available and use it for loading AVIF files
 - No additional installation steps are required for AVIF support when using the official release builds
+- The SixLabors.ImageSharp license (Apache-2.0 / Six Labors Split License) is included in the distribution package
 
 #### Usage
 
@@ -61,9 +62,9 @@ B2SConverter --convert-to-avif mybackglass.directb2s mybackglass.zipb2s
 - AVIF images in zipb2s files are preserved in their original format
 - When converting zipb2s to directb2s, AVIF images are automatically converted to PNG (since base64 embedding works best with standard formats)
 - Use the `--convert-to-avif` flag to convert PNG images to AVIF when creating zipb2s files for better compression
-- AVIF conversion requires ImageSharp library with AVIF encoder support (included in the distribution package)
+- AVIF conversion requires ImageSharp library with AVIF encoder support (embedded in B2SFileFormat.Library.dll)
 
-The converter is located in `/B2SFileFormat/B2SConverter/` and is included in the B2S Designer distribution package with all required dependencies.
+The converter is located in `/B2SFileFormat/B2SConverter/` and is included in the B2S Designer distribution package with all required dependencies embedded in B2SFileFormat.Library.dll.
 
 ## B2S File Format Library
 

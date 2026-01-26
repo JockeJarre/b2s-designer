@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Weavers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="FodyWeavers.xsd">
+  <Costura>
+    <!-- Embed all dependencies into B2SFileFormat.Library.dll -->
+    <IncludeAssemblies>
+      SixLabors.ImageSharp
+      System.Buffers
+      System.Memory
+      System.Numerics.Vectors
+      System.Runtime.CompilerServices.Unsafe
+      System.Text.Encoding.CodePages
+    </IncludeAssemblies>
+    <!-- Don't create separate files for native libraries -->
+    <Unmanaged32Assemblies />
+    <Unmanaged64Assemblies />
+  </Costura>
+</Weavers>
