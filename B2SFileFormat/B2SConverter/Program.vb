@@ -19,7 +19,7 @@ Module Program
         
         Dim argIndex = 0
         While argIndex < args.Length
-            ElseIf inputFile Is Nothing Then
+            If inputFile Is Nothing Then
                 inputFile = args(argIndex)
             ElseIf outputFile Is Nothing Then
                 outputFile = args(argIndex)
