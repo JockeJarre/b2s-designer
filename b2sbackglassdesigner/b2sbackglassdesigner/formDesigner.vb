@@ -1319,7 +1319,7 @@ Public Class formDesigner
                     If .ShowDialog(Me) = DialogResult.OK Then
                         Dim extension As String = IO.Path.GetExtension(.FileName).ToLower()
                         Dim success As Boolean = False
-                        If extension = ".B2Sz" Then
+                        If extension = ".b2sz" Then
                             success = coding.CreateB2SzFile(.FileName)
                         Else
                             ' Create directB2S file

@@ -562,7 +562,7 @@ Public Class Coding
         
         ' Check if this is a B2Sz file
         Dim extension As String = IO.Path.GetExtension(filename).ToLower()
-        If extension = ".B2Sz" Then
+        If extension = ".b2sz" Then
             ' Load B2Sz file
             Try
                 XML = LoadB2SzAsXml(filename)

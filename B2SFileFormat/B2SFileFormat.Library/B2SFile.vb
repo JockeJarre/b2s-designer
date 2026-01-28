@@ -25,7 +25,7 @@ Public Class B2SFile
             Select Case extension
                 Case ".directb2s"
                     Return LoadDirectB2S(filePath)
-                Case ".B2Sz"
+                Case ".b2sz"
                     Return LoadB2Sz(filePath)
                 Case Else
                     Throw New NotSupportedException($"Unsupported file extension: {extension}")

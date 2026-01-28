@@ -17,15 +17,13 @@ Module Program
         Dim inputFile As String = Nothing
         Dim outputFile As String = Nothing
         
-        Dim argIndex = 0
-        While argIndex < args.Length
-            ElseIf inputFile Is Nothing Then
-                inputFile = args(argIndex)
-            ElseIf outputFile Is Nothing Then
-                outputFile = args(argIndex)
-            End If
-            argIndex += 1
-        End While
+        If args.Length >= 1 Then
+            inputFile = args(0)
+        End If
+        
+        If args.Length >= 2 Then
+            outputFile = args(1)
+        End If
 
         If inputFile Is Nothing OrElse outputFile Is Nothing Then
             ShowUsage()
@@ -57,7 +55,7 @@ Module Program
             If outputExt = ".directb2s" Then
                 Console.WriteLine("Saving as directb2s (XML with embedded base64 images)...")
                 b2sFile.SaveDirectB2S(outputFile)
-            ElseIf outputExt = ".B2Sz" Then
+            ElseIf outputExt = ".b2sz" Then
                 Console.WriteLine("Saving as B2Sz (ZIP with separate image files)...")
                 b2sFile.SaveB2Sz(outputFile)
             Else
@@ -75,7 +73,7 @@ Module Program
             Console.WriteLine($"Input size:  {FormatBytes(inputSize)}")
             Console.WriteLine($"Output size: {FormatBytes(outputSize)}")
 
-            If outputExt = ".B2Sz" Then
+            If outputExt = ".b2sz" Then
                 Console.WriteLine()
                 Console.WriteLine("Note: The B2Sz format stores images as separate files in the ZIP archive.")
             End If
