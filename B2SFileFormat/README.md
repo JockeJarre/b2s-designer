@@ -6,14 +6,13 @@ This folder contains the B2S file format library and command-line converter tool
 
 ### B2SFileFormat.Library
 
-A reusable VB.NET class library for reading and writing B2S backglass files in both directb2s (XML) and zipb2s (ZIP) formats.
+A reusable VB.NET class library for reading and writing B2S backglass files in both directb2s (XML) and B2Sz (ZIP) formats.
 
 **Targets:**
 - .NET Framework 4.8 (for compatibility with B2S Designer)
 - .NET 8.0 (for modern cross-platform use)
 
 **Dependencies:**
-- SixLabors.ImageSharp (for AVIF support)
 - System.IO.Compression (for ZIP file handling)
 
 **Usage:**
@@ -22,11 +21,11 @@ A reusable VB.NET class library for reading and writing B2S backglass files in b
 ' Load a file (auto-detects format)
 Dim b2sFile As B2SFile = B2SFile.Load("mybackglass.directb2s")
 
-' Convert to zipb2s
-b2sFile.SaveZipB2S("mybackglass.zipb2s")
+' Convert to B2Sz
+b2sFile.SaveB2Sz("mybackglass.B2Sz")
 
 ' Convert back to directb2s
-Dim b2sFile2 As B2SFile = B2SFile.Load("mybackglass.zipb2s")
+Dim b2sFile2 As B2SFile = B2SFile.Load("mybackglass.B2Sz")
 b2sFile2.SaveDirectB2S("restored.directb2s")
 
 ' Access the XML document
@@ -40,51 +39,40 @@ Next
 
 ### B2SConverter
 
-A command-line tool for converting between directb2s and zipb2s formats, with support for PNG to AVIF conversion.
+A command-line tool for converting between directb2s and B2Sz formats.
 
 **Usage:**
 
 ```bash
-# Convert from directb2s to zipb2s
-dotnet B2SConverter.dll input.directb2s output.zipb2s
+# Convert from directb2s to B2Sz
+dotnet B2SConverter.dll input.directb2s output.B2Sz
 
-# Convert from zipb2s to directb2s
-dotnet B2SConverter.dll input.zipb2s output.directb2s
-
-# Convert PNG images to AVIF when creating zipb2s
-dotnet B2SConverter.dll --convert-to-avif input.directb2s output.zipb2s
-dotnet B2SConverter.dll -a input.directb2s output.zipb2s
+# Convert from B2Sz to directb2s
+dotnet B2SConverter.dll input.B2Sz output.directb2s
 
 # On Windows with .NET Framework
-B2SConverter.exe input.directb2s output.zipb2s
+B2SConverter.exe input.directb2s output.B2Sz
 ```
-
-**AVIF Image Handling:**
-- AVIF images in zipb2s files are preserved in their original format
-- When converting zipb2s to directb2s, AVIF images are automatically converted to PNG
-- Use `--convert-to-avif` or `-a` to convert PNG images to AVIF format in zipb2s
-- AVIF provides better compression than PNG (typically 30-50% smaller)
-- Requires ImageSharp library with AVIF encoder support
 
 **Output Example:**
 
 ```
 B2S File Format Converter v1.1
-Converts between directb2s and zipb2s formats
+Converts between directb2s and B2Sz formats
 
 Input:  test.directb2s
-Output: test.zipb2s
+Output: test.B2Sz
 
 Loading input file...
 Loaded successfully. Found 1 images.
 Converting...
-Saving as zipb2s (ZIP with separate image files)...
+Saving as B2Sz (ZIP with separate image files)...
 
 Conversion completed successfully!
 Input size:  1.77 KB
 Output size: 953.00 B
 
-Note: The zipb2s format stores images as separate files in the ZIP archive,
+Note: The B2Sz format stores images as separate files in the ZIP archive,
 which typically results in smaller file sizes due to PNG compression.
 ```
 
@@ -130,7 +118,7 @@ After building:
 - Single file, easy to distribute
 - Larger file size due to base64 encoding (~33% size increase)
 
-### zipb2s Format
+### B2Sz Format
 
 - New ZIP-based format
 - Contains:

@@ -560,12 +560,12 @@ Public Class Coding
 
         Dim XML As Xml.XmlDocument = New Xml.XmlDocument
         
-        ' Check if this is a zipb2s file
+        ' Check if this is a B2Sz file
         Dim extension As String = IO.Path.GetExtension(filename).ToLower()
-        If extension = ".zipb2s" Then
-            ' Load zipb2s file
+        If extension = ".B2Sz" Then
+            ' Load B2Sz file
             Try
-                XML = LoadZipB2SAsXml(filename)
+                XML = LoadB2SzAsXml(filename)
             Catch ex As Exception
                 MessageBox.Show(String.Format(My.Resources.MSG_ImportError, ex.Message), AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error)
                 Return False
@@ -2297,12 +2297,12 @@ Public Class Coding
 
 #End Region
 
-#Region "zipB2S support"
+#Region "B2Sz support"
 
     ''' <summary>
-    ''' Load a zipb2s file and convert it to XML with embedded base64 images
+    ''' Load a B2Sz file and convert it to XML with embedded base64 images
     ''' </summary>
-    Private Function LoadZipB2SAsXml(ByVal filename As String) As Xml.XmlDocument
+    Private Function LoadB2SzAsXml(ByVal filename As String) As Xml.XmlDocument
         Dim xml As New Xml.XmlDocument()
         Dim images As New Dictionary(Of String, Byte())
         
@@ -2318,7 +2318,7 @@ Public Class Coding
             Next
             
             If xmlEntry Is Nothing Then
-                Throw New InvalidDataException("No XML file found in zipb2s archive")
+                Throw New InvalidDataException("No XML file found in B2Sz archive")
             End If
             
             ' Load the XML
@@ -2379,11 +2379,7 @@ Public Class Coding
                 End If
                 
                 If imageData IsNot Nothing Then
-                    ' Convert AVIF to PNG if needed
-                    If matchedKey IsNot Nothing AndAlso IO.Path.GetExtension(matchedKey).ToLower() = ".avif" Then
-                        imageData = ConvertAvifToPng(imageData)
-                    End If
-                    
+
                     ' Determine which attribute to use based on node type
                     ' Nodes like BackglassImage, DMDImage use "Value" attribute
                     ' Nodes like Bulb use "Image" attribute
@@ -2402,47 +2398,9 @@ Public Class Coding
     End Sub
     
     ''' <summary>
-    ''' Convert AVIF image bytes to PNG bytes
+    ''' Create a B2Sz file with XML and separate image files
     ''' </summary>
-    Private Function ConvertAvifToPng(ByVal avifData As Byte()) As Byte()
-        ' Try to use ImageLoader to convert AVIF to PNG
-        Dim tempAvif As String = String.Empty
-        Dim img As Image = Nothing
-        Try
-            ' Save AVIF to temp file
-            tempAvif = IO.Path.Combine(IO.Path.GetTempPath(), Guid.NewGuid().ToString() & ".avif")
-            IO.File.WriteAllBytes(tempAvif, avifData)
-            
-            ' Load with ImageLoader (supports AVIF)
-            img = ImageLoader.LoadImage(tempAvif)
-            
-            ' Convert to PNG bytes
-            Using ms As New IO.MemoryStream()
-                img.Save(ms, Imaging.ImageFormat.Png)
-                Return ms.ToArray()
-            End Using
-        Catch ex As Exception
-            ' If conversion fails, return original data
-            Return avifData
-        Finally
-            ' Cleanup resources
-            If img IsNot Nothing Then
-                img.Dispose()
-            End If
-            If Not String.IsNullOrEmpty(tempAvif) AndAlso IO.File.Exists(tempAvif) Then
-                Try
-                    IO.File.Delete(tempAvif)
-                Catch
-                    ' Ignore cleanup errors
-                End Try
-            End If
-        End Try
-    End Function
-    
-    ''' <summary>
-    ''' Create a zipb2s file with XML and separate image files
-    ''' </summary>
-    Public Function CreateZipB2SFile(ByVal filePath As String) As Boolean
+    Public Function CreateB2SzFile(ByVal filePath As String) As Boolean
         Try
             ' First create the directB2S file in the project directory
             Dim assemblyname As String = Backglass.currentData.VSName
@@ -2453,7 +2411,7 @@ Public Class Coding
                 Return False
             End If
             
-            ' Now convert the directB2S to zipB2S
+            ' Now convert the directB2S to B2Sz
             If Not IO.File.Exists(directB2SPath) Then
                 MessageBox.Show("Failed to create directB2S file", AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error)
                 Return False
@@ -2477,7 +2435,7 @@ Public Class Coding
             End If
             
             Using archive As ZipArchive = ZipFile.Open(filePath, ZipArchiveMode.Create)
-                ' Add XML file - hardcoded to "parameters.xml" as per zipb2s format specification
+                ' Add XML file - hardcoded to "parameters.xml" as per B2Sz format specification
                 Dim xmlEntry As ZipArchiveEntry = archive.CreateEntry("parameters.xml")
                 Using entryStream As IO.Stream = xmlEntry.Open()
                     xmlCopy.Save(entryStream)
@@ -2494,7 +2452,7 @@ Public Class Coding
             
             Return True
         Catch ex As Exception
-            MessageBox.Show(String.Format("Error creating zipB2S file: {0}", ex.Message), AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error)
+            MessageBox.Show(String.Format("Error creating B2Sz file: {0}", ex.Message), AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Error)
             Return False
         End Try
     End Function

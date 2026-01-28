@@ -3,7 +3,7 @@ Imports System.IO.Compression
 Imports System.Xml
 
 ''' <summary>
-''' Represents a B2S backglass file (directb2s or zipb2s format)
+''' Represents a B2S backglass file (directb2s or B2Sz format)
 ''' </summary>
 Public Class B2SFile
     Public Property XmlDocument As XmlDocument
@@ -25,8 +25,8 @@ Public Class B2SFile
             Select Case extension
                 Case ".directb2s"
                     Return LoadDirectB2S(filePath)
-                Case ".zipb2s"
-                    Return LoadZipB2S(filePath)
+                Case ".B2Sz"
+                    Return LoadB2Sz(filePath)
                 Case Else
                     Throw New NotSupportedException($"Unsupported file extension: {extension}")
             End Select
@@ -42,9 +42,9 @@ Public Class B2SFile
         End Function
 
         ''' <summary>
-        ''' Load a zipb2s file (ZIP format with XML and separate image files)
+        ''' Load a B2Sz file (ZIP format with XML and separate image files)
         ''' </summary>
-        Public Shared Function LoadZipB2S(filePath As String) As B2SFile
+        Public Shared Function LoadB2Sz(filePath As String) As B2SFile
             Dim result = New B2SFile()
 
             Using archive = ZipFile.OpenRead(filePath)
@@ -58,7 +58,7 @@ Public Class B2SFile
                 End If
 
                 If xmlEntry Is Nothing Then
-                    Throw New InvalidDataException("No XML file found in zipb2s archive")
+                    Throw New InvalidDataException("No XML file found in B2Sz archive")
                 End If
 
                 Using xmlStream = xmlEntry.Open()
@@ -96,9 +96,9 @@ Public Class B2SFile
         End Sub
 
         ''' <summary>
-        ''' Save to zipb2s format (ZIP with XML and separate image files)
+        ''' Save to B2Sz format (ZIP with XML and separate image files)
         ''' </summary>
-        Public Sub SaveZipB2S(filePath As String)
+        Public Sub SaveB2Sz(filePath As String)
             ' Extract images from XML
             ExtractImagesFromXml()
 
@@ -220,7 +220,7 @@ Public Class B2SFile
         Private Sub EmbedImagesToXml()
             If Images.Count = 0 Then Return
 
-            ' This is used when converting from zipb2s back to directb2s
+            ' This is used when converting from B2Sz back to directb2s
             Dim imageNodes = XmlDocument.SelectNodes("//*[@FileName]")
             If imageNodes Is Nothing Then Return
 
@@ -246,11 +246,6 @@ Public Class B2SFile
                     End If
 
                     If imageData IsNot Nothing Then
-                        ' Convert AVIF to PNG for directb2s embedding
-                        If matchedKey IsNot Nothing AndAlso Path.GetExtension(matchedKey).ToLower() = ".avif" Then
-                            imageData = ConvertAvifToPng(imageData)
-                        End If
-
                         ' Determine which attribute to use based on node type
                         ' Nodes like BackglassImage, DMDImage use "Value" attribute
                         ' Nodes like Bulb use "Image" attribute
@@ -454,133 +449,8 @@ Public Class B2SFile
                 Return "bmp"
             End If
 
-            ' Check for AVIF signature (ftyp box with 'avif' brand)
-            If imageBytes.Length >= 12 Then
-                ' AVIF files start with ftyp box, check for 'avif' or 'avis' brand
-                Dim ftypPos = 4
-                If imageBytes(ftypPos) = &H66 AndAlso imageBytes(ftypPos + 1) = &H74 AndAlso imageBytes(ftypPos + 2) = &H79 AndAlso imageBytes(ftypPos + 3) = &H70 Then
-                    ' Check major brand
-                    If imageBytes.Length >= 16 Then
-                        Dim brandPos = 8
-                        If (imageBytes(brandPos) = &H61 AndAlso imageBytes(brandPos + 1) = &H76 AndAlso imageBytes(brandPos + 2) = &H69 AndAlso imageBytes(brandPos + 3) = &H66) OrElse
-                           (imageBytes(brandPos) = &H61 AndAlso imageBytes(brandPos + 1) = &H76 AndAlso imageBytes(brandPos + 2) = &H69 AndAlso imageBytes(brandPos + 3) = &H73) Then
-                            Return "avif"
-                        End If
-                    End If
-                End If
-            End If
-
             ' Default to PNG
             Return "png"
-        End Function
-
-        ''' <summary>
-        ''' Convert AVIF image bytes to PNG using ImageSharp
-        ''' </summary>
-        Private Function ConvertAvifToPng(avifBytes As Byte()) As Byte()
-            Try
-                ' Use ImageSharp to convert AVIF to PNG
-                Dim imageSharpAssembly = System.Reflection.Assembly.Load("SixLabors.ImageSharp")
-                Dim imageType = imageSharpAssembly.GetType("SixLabors.ImageSharp.Image")
-
-                ' Load the AVIF image from bytes
-                Dim loadMethod = imageType.GetMethod("Load", New Type() {GetType(Byte())})
-                If loadMethod Is Nothing Then
-                    ' Try stream-based loading
-                    Dim ms = New MemoryStream(avifBytes)
-                    loadMethod = imageType.GetMethod("Load", New Type() {GetType(Stream)})
-                    If loadMethod IsNot Nothing Then
-                        Dim imageSharpImage = loadMethod.Invoke(Nothing, New Object() {ms})
-                        Return ConvertImageSharpToPngBytes(imageSharpImage)
-                    End If
-                Else
-                    Dim imageSharpImage = loadMethod.Invoke(Nothing, New Object() {avifBytes})
-                    Return ConvertImageSharpToPngBytes(imageSharpImage)
-                End If
-            Catch ex As Exception
-                ' If conversion fails, return original bytes
-                Console.WriteLine($"Warning: Failed to convert AVIF to PNG: {ex.Message}")
-            End Try
-
-            ' Return original bytes if conversion fails
-            Return avifBytes
-        End Function
-
-        ''' <summary>
-        ''' Convert PNG image bytes to AVIF using ImageSharp
-        ''' </summary>
-        Public Shared Function ConvertPngToAvif(pngBytes As Byte()) As Byte()
-            Try
-                ' Use ImageSharp to convert PNG to AVIF
-                Dim imageSharpAssembly = System.Reflection.Assembly.Load("SixLabors.ImageSharp")
-                Dim imageType = imageSharpAssembly.GetType("SixLabors.ImageSharp.Image")
-
-                ' Load the PNG image from bytes
-                Using ms = New MemoryStream(pngBytes)
-                    Dim loadMethod = imageType.GetMethod("Load", New Type() {GetType(Stream)})
-                    If loadMethod IsNot Nothing Then
-                        Dim imageSharpImage = loadMethod.Invoke(Nothing, New Object() {ms})
-                        Return ConvertImageSharpToAvifBytes(imageSharpImage)
-                    End If
-                End Using
-            Catch ex As Exception
-                Throw New Exception($"Failed to convert PNG to AVIF: {ex.Message}", ex)
-            End Try
-
-            ' Return original bytes if conversion fails
-            Return pngBytes
-        End Function
-
-        ''' <summary>
-        ''' Convert ImageSharp image to PNG bytes
-        ''' </summary>
-        Private Function ConvertImageSharpToPngBytes(imageSharpImage As Object) As Byte()
-            Try
-                Using ms = New MemoryStream()
-                    ' Get the SaveAsPng method
-                    Dim saveMethod = imageSharpImage.GetType().GetMethod("SaveAsPng", New Type() {GetType(Stream)})
-                    If saveMethod IsNot Nothing Then
-                        saveMethod.Invoke(imageSharpImage, New Object() {ms})
-                        Return ms.ToArray()
-                    End If
-                End Using
-            Finally
-                ' Dispose the ImageSharp image
-                If TypeOf imageSharpImage Is IDisposable Then
-                    DirectCast(imageSharpImage, IDisposable).Dispose()
-                End If
-            End Try
-
-            Return Nothing
-        End Function
-
-        ''' <summary>
-        ''' Convert ImageSharp image to AVIF bytes
-        ''' </summary>
-        Private Shared Function ConvertImageSharpToAvifBytes(imageSharpImage As Object) As Byte()
-            Try
-                Using ms = New MemoryStream()
-                    ' Get the encoder type
-                    Dim encodersType = imageSharpImage.GetType().Assembly.GetType("SixLabors.ImageSharp.Formats.Avif.AvifEncoder")
-                    If encodersType IsNot Nothing Then
-                        Dim encoder = Activator.CreateInstance(encodersType)
-                        
-                        ' Get the Save method that takes a Stream and encoder
-                        Dim saveMethod = imageSharpImage.GetType().GetMethod("Save", New Type() {GetType(Stream), encodersType})
-                        If saveMethod IsNot Nothing Then
-                            saveMethod.Invoke(imageSharpImage, New Object() {ms, encoder})
-                            Return ms.ToArray()
-                        End If
-                    End If
-                End Using
-            Finally
-                ' Dispose the ImageSharp image
-                If TypeOf imageSharpImage Is IDisposable Then
-                    DirectCast(imageSharpImage, IDisposable).Dispose()
-                End If
-            End Try
-
-            Return Nothing
         End Function
 
         ''' <summary>

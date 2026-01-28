@@ -1,21 +1,19 @@
-# Implementation Notes: zipB2S and AVIF UI Integration
+# Implementation Notes: B2Sz UI Integration
 
 ## Overview
-This implementation adds UI support for the zipB2S file format and verifies existing AVIF image format support in the B2S Designer application.
+This implementation adds UI support for the B2Sz file format in the B2S Designer application.
 
 ## Problem Statement
 The task was to:
-1. Change menu "Create 'directB2S' backglass file" to "Create backglass file" to allow saving zipB2S files
-2. Allow "Import 'directB2S' backglass file" to import zipB2S files as well
-3. Verify the intermediate b2S format supports AVIF files
+1. Change menu "Create 'directB2S' backglass file" to "Create backglass file" to allow saving B2Sz files
+2. Allow "Import 'directB2S' backglass file" to import B2Sz files as well
 
 ## Solution Approach
 
 ### Minimal Changes Strategy
 - Reused existing CreateDirectB2SFile() logic instead of refactoring it
-- Added wrapper methods for zipB2S conversion
+- Added wrapper methods for B2Sz conversion
 - Modified only UI entry points (menu handlers and dialogs)
-- Leveraged existing ImageLoader class for AVIF support
 
 ### Technical Implementation
 
@@ -25,16 +23,16 @@ The task was to:
 
 #### 2. Import Support (formDesigner.vb, Coding.vb)
 **formDesigner.vb:**
-- Updated file dialog filter to accept both .directb2s and .zipb2s files
+- Updated file dialog filter to accept both .directb2s and .B2Sz files
 - File type detection is automatic based on extension
 
 **Coding.vb - ImportDirectB2SFile():**
 - Added extension check at the beginning
-- If .zipb2s: calls LoadZipB2SAsXml() to extract and convert
+- If .B2Sz: calls LoadB2SzAsXml() to extract and convert
 - If .directb2s: proceeds with existing logic
 - Both paths converge to the same processing after XML is loaded
 
-**Coding.vb - LoadZipB2SAsXml():**
+**Coding.vb - LoadB2SzAsXml():**
 - Opens ZIP archive
 - Extracts XML file
 - Extracts all image files to dictionary
@@ -44,11 +42,11 @@ The task was to:
 #### 3. Export Support (formDesigner.vb, Coding.vb)
 **formDesigner.vb:**
 - Added SaveFileDialog instead of direct save
-- Filter allows choosing .directb2s or .zipb2s
+- Filter allows choosing .directb2s or .B2Sz
 - Checks extension and calls appropriate method
 - Added success feedback message
 
-**Coding.vb - CreateZipB2SFile():**
+**Coding.vb - CreateB2SzFile():**
 - Calls existing CreateDirectB2SFile() first
 - Loads the generated directB2S file
 - Calls ExtractImagesFromXml() to extract base64 images
@@ -78,30 +76,11 @@ The task was to:
 **EmbedImagesToXml():**
 - Finds nodes with FileName attribute
 - Looks up corresponding image in dictionary
-- Converts AVIF to PNG if needed (via ConvertAvifToPng)
 - Sets Image attribute with base64 data
-
-**ConvertAvifToPng():**
-- Uses ImageLoader.LoadImage() which supports AVIF
-- Saves to temporary file
-- Loads with ImageLoader
-- Converts to PNG
-- Proper cleanup in finally block
-
-### AVIF Support Verification
-Verified that AVIF support is already fully implemented:
-- `ImageLoader.vb` class handles AVIF loading via ImageSharp reflection
-- Used in:
-  - formDesigner.vb (5 locations)
-  - formAddSnippit.vb (3 locations)
-  - formSnippitSettings.vb (1 location)
-- AVIF files are automatically converted to PNG when embedded in directB2S
-- No additional changes needed
 
 ## Code Quality
 
 ### Code Review Issues Addressed
-1. ✅ **Temp file cleanup**: Moved to finally block in ConvertAvifToPng()
 2. ✅ **Image disposal**: Added proper disposal in finally block
 3. ✅ **MemoryStream efficiency**: Replaced with direct byte array read
 4. ✅ **Return value checking**: Added success checking with user feedback
@@ -115,32 +94,25 @@ Verified that AVIF support is already fully implemented:
 ## Testing Recommendations
 
 ### Manual Testing Checklist
-1. **Create zipB2S:**
+1. **Create B2Sz:**
    - Open existing project
    - Backglass → Create backglass file
-   - Choose .zipb2s format
+   - Choose .B2Sz format
    - Verify file created
    - Extract ZIP and verify contents
 
-2. **Import zipB2S:**
+2. **Import B2Sz:**
    - File → Import backglass file
-   - Select .zipb2s file
+   - Select .B2Sz file
    - Verify all elements load correctly
 
 3. **Round-trip test:**
-   - Create .zipb2s from project
-   - Import the .zipb2s
+   - Create .B2Sz from project
+   - Import the .B2Sz
    - Export as .directb2s
    - Compare with original
 
-4. **AVIF support:**
-   - Import AVIF image as background
-   - Save as .zipb2s
-   - Verify AVIF preserved in ZIP
-   - Save as .directb2s
-   - Verify AVIF converted to PNG
-
-5. **Error handling:**
+4. **Error handling:**
    - Try importing invalid ZIP file
    - Try importing ZIP without XML
    - Verify error messages are clear
@@ -154,8 +126,7 @@ Verified that AVIF support is already fully implemented:
 - ✅ No breaking changes to file formats
 
 ### Forward Compatibility
-- zipB2S files can be converted back to directB2S
-- AVIF images auto-convert to PNG for directB2S
+- B2Sz files can be converted back to directB2S
 - B2SConverter tool available for batch conversion
 
 ## File Size Comparison
@@ -166,12 +137,11 @@ Based on previous testing:
 
 ## Known Limitations
 1. Requires Windows (VB.NET Windows Forms application)
-2. AVIF support requires SixLabors.ImageSharp NuGet package
-3. No automated tests (manual testing required)
-4. HTML Help Workshop required for help file compilation (optional)
+2. No automated tests (manual testing required)
+3. HTML Help Workshop required for help file compilation (optional)
 
 ## Documentation
-- ✅ AVIF_AND_ZIPB2S.md - User guide with UI instructions
+- ✅ B2Sz_file_format.md - User guide with UI instructions
 - ✅ README.md - Feature highlights
 - ✅ Code comments - All new methods documented
 - ✅ Testing procedure - Manual testing steps
@@ -188,10 +158,9 @@ Build process:
 ## Success Criteria
 ✅ All requirements from problem statement met:
 1. ✅ Menu text updated to "Create backglass file"
-2. ✅ Save dialog allows choosing directB2S or zipB2S
+2. ✅ Save dialog allows choosing directB2S or B2Sz
 3. ✅ Import menu text updated to "Import backglass file"
 4. ✅ Import dialog accepts both formats
-5. ✅ AVIF support verified in b2S format
 
 ✅ Code quality standards met:
 - Minimal changes (343 lines added, 9 lines removed in code files)

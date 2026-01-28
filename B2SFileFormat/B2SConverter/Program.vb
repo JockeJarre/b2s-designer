@@ -5,7 +5,7 @@ Imports B2SFileFormat.Library
 Module Program
     Sub Main(args As String())
         Console.WriteLine("B2S File Format Converter v1.1")
-        Console.WriteLine("Converts between directb2s and zipb2s formats")
+        Console.WriteLine("Converts between directb2s and B2Sz formats")
         Console.WriteLine()
 
         If args.Length < 2 Then
@@ -14,14 +14,11 @@ Module Program
         End If
 
         ' Parse arguments
-        Dim convertToAvif As Boolean = False
         Dim inputFile As String = Nothing
         Dim outputFile As String = Nothing
         
         Dim argIndex = 0
         While argIndex < args.Length
-            If args(argIndex) = "--convert-to-avif" OrElse args(argIndex) = "-a" Then
-                convertToAvif = True
             ElseIf inputFile Is Nothing Then
                 inputFile = args(argIndex)
             ElseIf outputFile Is Nothing Then
@@ -48,9 +45,6 @@ Module Program
 
             Console.WriteLine($"Input:  {inputFile}")
             Console.WriteLine($"Output: {outputFile}")
-            If convertToAvif Then
-                Console.WriteLine("Option: Convert PNG images to AVIF format")
-            End If
             Console.WriteLine()
 
             ' Load the input file
@@ -58,26 +52,17 @@ Module Program
             Dim b2sFile As B2SFile = B2SFile.Load(inputFile)
             Console.WriteLine($"Loaded successfully. Found {b2sFile.Images.Count} images.")
 
-            ' Convert PNG to AVIF if requested
-            If convertToAvif AndAlso outputExt = ".zipb2s" Then
-                Console.WriteLine("Converting PNG images to AVIF...")
-                ConvertPngImagesToAvif(b2sFile)
-            End If
-
             ' Save in the target format
             Console.WriteLine("Converting...")
             If outputExt = ".directb2s" Then
                 Console.WriteLine("Saving as directb2s (XML with embedded base64 images)...")
-                If convertToAvif Then
-                    Console.WriteLine("Note: AVIF images will be converted to PNG for directb2s compatibility.")
-                End If
                 b2sFile.SaveDirectB2S(outputFile)
-            ElseIf outputExt = ".zipb2s" Then
-                Console.WriteLine("Saving as zipb2s (ZIP with separate image files)...")
-                b2sFile.SaveZipB2S(outputFile)
+            ElseIf outputExt = ".B2Sz" Then
+                Console.WriteLine("Saving as B2Sz (ZIP with separate image files)...")
+                b2sFile.SaveB2Sz(outputFile)
             Else
                 Console.WriteLine($"Error: Unsupported output format: {outputExt}")
-                Console.WriteLine("Supported formats: .directb2s, .zipb2s")
+                Console.WriteLine("Supported formats: .directb2s, .B2Sz")
                 Environment.Exit(1)
             End If
 
@@ -90,12 +75,9 @@ Module Program
             Console.WriteLine($"Input size:  {FormatBytes(inputSize)}")
             Console.WriteLine($"Output size: {FormatBytes(outputSize)}")
 
-            If outputExt = ".zipb2s" Then
+            If outputExt = ".B2Sz" Then
                 Console.WriteLine()
-                Console.WriteLine("Note: The zipb2s format stores images as separate files in the ZIP archive.")
-                If convertToAvif Then
-                    Console.WriteLine("AVIF format provides better compression than PNG for most images.")
-                End If
+                Console.WriteLine("Note: The B2Sz format stores images as separate files in the ZIP archive.")
             End If
 
         Catch ex As Exception
@@ -108,50 +90,18 @@ Module Program
         End Try
     End Sub
 
-    Sub ConvertPngImagesToAvif(b2sFile As B2SFile)
-        Dim converted = 0
-        Dim keys = b2sFile.Images.Keys.ToList()
-        
-        For Each key In keys
-            If Path.GetExtension(key).ToLower() = ".png" Then
-                Try
-                    Dim pngBytes = b2sFile.Images(key)
-                    Dim avifBytes = B2SFile.ConvertPngToAvif(pngBytes)
-                    
-                    ' Replace the PNG with AVIF
-                    b2sFile.Images.Remove(key)
-                    Dim newKey = Path.ChangeExtension(key, ".avif")
-                    b2sFile.Images(newKey) = avifBytes
-                    converted += 1
-                    Console.WriteLine($"  Converted: {key} -> {newKey}")
-                Catch ex As Exception
-                    Console.WriteLine($"  Warning: Failed to convert {key}: {ex.Message}")
-                End Try
-            End If
-        Next
-        
-        Console.WriteLine($"Converted {converted} PNG image(s) to AVIF format.")
-    End Sub
-
     Sub ShowUsage()
         Console.WriteLine("Usage: B2SConverter [options] <input-file> <output-file>")
         Console.WriteLine()
         Console.WriteLine("Options:")
-        Console.WriteLine("  --convert-to-avif, -a   Convert PNG images to AVIF format (zipb2s output only)")
         Console.WriteLine()
         Console.WriteLine("Supported formats:")
         Console.WriteLine("  .directb2s  - XML format with base64 embedded images")
-        Console.WriteLine("  .zipb2s     - ZIP format with XML and separate image files")
+        Console.WriteLine("  .B2Sz     - ZIP format with XML and separate image files")
         Console.WriteLine()
         Console.WriteLine("Examples:")
-        Console.WriteLine("  B2SConverter mybackglass.directb2s mybackglass.zipb2s")
-        Console.WriteLine("  B2SConverter mybackglass.zipb2s mybackglass.directb2s")
-        Console.WriteLine("  B2SConverter --convert-to-avif mybackglass.directb2s mybackglass.zipb2s")
-        Console.WriteLine()
-        Console.WriteLine("Notes:")
-        Console.WriteLine("  - AVIF images in zipb2s are preserved in their original format")
-        Console.WriteLine("  - When converting zipb2s to directb2s, AVIF images are converted to PNG")
-        Console.WriteLine("  - AVIF conversion requires ImageSharp library with AVIF encoder support")
+        Console.WriteLine("  B2SConverter mybackglass.directb2s mybackglass.B2Sz")
+        Console.WriteLine("  B2SConverter mybackglass.B2Sz mybackglass.directb2s")
     End Sub
 
     Function FormatBytes(bytes As Long) As String

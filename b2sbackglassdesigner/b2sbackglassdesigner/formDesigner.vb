@@ -537,7 +537,7 @@ Public Class formDesigner
     Private Sub ImportBackglassFile_Click(sender As System.Object, e As System.EventArgs) Handles tsmiImportBackglassFile.Click
         Using filedialog As OpenFileDialog = New OpenFileDialog
             With filedialog
-                .Filter = "Backglass files (*.directb2s;*.zipb2s)|*.directb2s;*.zipb2s|'directB2S' backglass file (*.directb2s)|*.directb2s|'zipB2S' backglass file (*.zipb2s)|*.zipb2s|ALL (*.*)|*.*"
+                .Filter = "Backglass files (*.directb2s;*.B2Sz)|*.directb2s;*.B2Sz|'directB2S' backglass file (*.directb2s)|*.directb2s|'B2Sz' backglass file (*.B2Sz)|*.B2Sz|ALL (*.*)|*.*"
                 .FileName = String.Empty
                 .InitialDirectory = If(LatestImportDirectory.Length, LatestImportDirectory, BackglassProjectsPath)
                 If .ShowDialog(Me) = DialogResult.OK Then
@@ -1312,15 +1312,15 @@ Public Class formDesigner
         If Backglass.currentTabPage IsNot Nothing Then
             Using filedialog As SaveFileDialog = New SaveFileDialog
                 With filedialog
-                    .Filter = "Backglass files|*.directb2s;*.zipb2s|'directB2S' backglass file (*.directb2s)|*.directb2s|'zipB2S' backglass file (*.zipb2s)|*.zipb2s"
+                    .Filter = "Backglass files|*.directb2s;*.B2Sz|'directB2S' backglass file (*.directb2s)|*.directb2s|'B2Sz' backglass file (*.B2Sz)|*.B2Sz"
                     .FileName = Backglass.currentData.VSName & ".directb2s"
                     .InitialDirectory = ProjectPath
                     .DefaultExt = "directb2s"
                     If .ShowDialog(Me) = DialogResult.OK Then
                         Dim extension As String = IO.Path.GetExtension(.FileName).ToLower()
                         Dim success As Boolean = False
-                        If extension = ".zipb2s" Then
-                            success = coding.CreateZipB2SFile(.FileName)
+                        If extension = ".B2Sz" Then
+                            success = coding.CreateB2SzFile(.FileName)
                         Else
                             ' Create directB2S file
                             success = coding.CreateDirectB2SFile()

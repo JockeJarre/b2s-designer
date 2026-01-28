@@ -1,35 +1,12 @@
-# Implementation Summary: AVIF Support and zipb2s Format
+# Implementation Summary: B2Sz Format
 
 ## Overview
 
-This implementation adds two major features to the B2S Designer project:
-1. Support for AVIF (AV1 Image File Format) image files
-2. A new zipb2s file format that uses ZIP compression for smaller file sizes
+This implementation adds a new B2Sz file format that uses ZIP compression for smaller file sizes
 
 ## What Was Implemented
 
-### 1. AVIF Image Support
-
-#### Changes Made:
-- **moduleB2S.vb**: Updated `ImageFileExtensionFilter` to include `*.avif` files
-- **ImageLoader.vb** (NEW): Helper class that loads AVIF files using ImageSharp library via reflection
-- **formDesigner.vb**: Updated all `Bitmap.FromFile()` calls to use `ImageLoader.LoadImage()`
-- **formAddSnippit.vb**: Updated image loading to use `ImageLoader.LoadImage()`
-- **formSnippitSettings.vb**: Updated image loading to use `ImageLoader.LoadImage()`
-
-#### How It Works:
-1. User selects an AVIF file through the file dialog
-2. `ImageLoader.LoadImage()` detects the .avif extension
-3. If ImageSharp library is available (checked via reflection), it loads the AVIF file
-4. The AVIF image is converted to PNG format in memory
-5. The image is then converted to a standard .NET Bitmap object
-6. The Bitmap is embedded in the directb2s file as base64-encoded PNG data
-
-#### Requirements:
-- User must install SixLabors.ImageSharp NuGet package manually
-- Without ImageSharp, AVIF files will show an informative error message
-
-### 2. zipb2s File Format
+### B2Sz File Format
 
 #### New Projects:
 - **B2SFileFormat.Library**: Reusable VB.NET class library targeting .NET Framework 4.8 and .NET 8.0
@@ -37,17 +14,17 @@ This implementation adds two major features to the B2S Designer project:
 
 #### B2SFileFormat.Library
 Contains a single `B2SFile` class with the following functionality:
-- `Load(filePath)` - Auto-detects and loads either directb2s or zipb2s files
+- `Load(filePath)` - Auto-detects and loads either directb2s or B2Sz files
 - `LoadDirectB2S(filePath)` - Loads traditional XML-based directb2s files
-- `LoadZipB2S(filePath)` - Loads new ZIP-based zipb2s files
+- `LoadB2Sz(filePath)` - Loads new ZIP-based B2Sz files
 - `SaveDirectB2S(filePath)` - Saves as directb2s with base64-embedded images
-- `SaveZipB2S(filePath)` - Saves as zipb2s with separate image files
+- `SaveB2Sz(filePath)` - Saves as B2Sz with separate image files
 
 #### B2SConverter
 Command-line tool usage:
 ```bash
-B2SConverter input.directb2s output.zipb2s  # Convert to zipb2s
-B2SConverter input.zipb2s output.directb2s  # Convert back to directb2s
+B2SConverter input.directb2s output.B2Sz  # Convert to B2Sz
+B2SConverter input.B2Sz output.directb2s  # Convert back to directb2s
 ```
 
 Features:
@@ -64,7 +41,7 @@ Features:
 - Single file for easy distribution
 - Compatible with all existing tools
 
-### zipb2s Format (New)
+### B2Sz Format (New)
 - ZIP archive containing:
   - XML file with file structure (Image attributes are empty)
   - Individual image files in their native format (PNG, JPEG, etc.)
@@ -77,13 +54,13 @@ Features:
 
 ### Test Case 1: Simple File with 1 Image
 - Original directb2s: 1,810 bytes
-- Converted zipb2s: 959 bytes (52.9% of original)
+- Converted B2Sz: 959 bytes (52.9% of original)
 - Restored directb2s: 1,822 bytes
 - ✅ Round-trip successful
 
 ### Test Case 2: Complex File with 6 Images
 - Original directb2s: 2,472 bytes
-- Converted zipb2s: 1,793 bytes (72.5% of original)
+- Converted B2Sz: 1,793 bytes (72.5% of original)
 - Restored directb2s: 2,322 bytes
 - ✅ Round-trip successful
 - ✅ All 6 images preserved correctly
@@ -111,9 +88,8 @@ All issues identified and fixed:
 
 This implementation strictly follows the requirement to make minimal changes:
 
-1. **AVIF Support**: Only modified image loading code paths, no architectural changes
-2. **New Library**: Created as separate projects, zero impact on existing code
-3. **File Format**: No changes to existing directb2s format, only added new zipb2s option
+1. **New Library**: Created as separate projects, zero impact on existing code
+2. **File Format**: No changes to existing directb2s format, only added new B2Sz option
 4. **Backwards Compatible**: All existing functionality preserved
 
 ## Files Modified
@@ -129,7 +105,7 @@ This implementation strictly follows the requirement to make minimal changes:
 - `b2sbackglassdesigner/b2sbackglassdesigner/classes/ImageLoader.vb` (145 lines)
 - `B2SFileFormat/B2SFileFormat.Library/B2SFile.vb` (266 lines)
 - `B2SFileFormat/B2SConverter/Program.vb` (100 lines)
-- `AVIF_AND_ZIPB2S.md` (documentation)
+- `B2Sz_file_format.md` (documentation)
 
 **Total Lines Modified in Existing Files: 11 lines**
 **Total New Code: ~511 lines**
@@ -137,25 +113,24 @@ This implementation strictly follows the requirement to make minimal changes:
 ## Future Enhancements
 
 Possible improvements for future work:
-1. Add zipb2s import/export directly in the designer UI
+1. Add B2Sz import/export directly in the designer UI
 2. Batch conversion tool with GUI
 3. Image optimization during conversion (resize, compress)
-4. Support for other modern image formats (WebP, JPEG XL)
-5. Archive multiple backglass versions in a single file
+4. Support for other modern image formats (AVIF, WebP, JPEG XL)
 
 ## Documentation
 
-- **AVIF_AND_ZIPB2S.md**: User-facing documentation explaining both features
+- **B2Sz_file_format.md**: User-facing documentation explaining B2Sz.
 - **This file**: Technical implementation summary
 - Code comments: All new code is well-documented with XML documentation
 
 ## Conclusion
 
-This implementation successfully adds AVIF support and the zipb2s format to B2S Designer while:
+This implementation successfully adds the B2Sz format to B2S Designer while:
 - Making minimal changes to the existing codebase
 - Following existing code patterns
 - Maintaining full backwards compatibility
 - Providing comprehensive testing
 - Including thorough documentation
 
-The new B2SConverter tool can be used immediately for converting files, and AVIF support will work as soon as the ImageSharp package is added to the designer project.
+The new B2SConverter tool can be used immediately for converting files.
