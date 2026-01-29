@@ -3,9 +3,6 @@ Imports System.Drawing
 Imports System.IO
 
 Public Class ImageLoader
-
-    End Function
-
     ''' <summary>
     ''' Load an image file, supporting standard formats
     ''' </summary>
