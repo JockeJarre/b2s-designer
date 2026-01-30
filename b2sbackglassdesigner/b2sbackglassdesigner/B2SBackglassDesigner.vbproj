@@ -102,6 +102,9 @@
     <ApplicationIcon>B2SBackglassDesigner_64.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FreeImageNET, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\FreeImage.Standard.4.3.8\lib\net40\FreeImageNET.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />

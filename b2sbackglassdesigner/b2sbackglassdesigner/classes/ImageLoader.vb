@@ -15,7 +15,7 @@ Public Class ImageLoader
         End If
 
         Try
-            ' Use FreeImage to load the image, which supports many more formats
+            ' Use FreeImage to load the image, which supports many more formats including WEBP
             Dim dib As FIBITMAP = FreeImage.LoadEx(filePath)
             
             If dib.IsNull Then

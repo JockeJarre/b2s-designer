@@ -446,6 +446,8 @@ Public Class B2SFile
                                 Return "gif"
                             Case FREE_IMAGE_FORMAT.FIF_BMP
                                 Return "bmp"
+                            Case FREE_IMAGE_FORMAT.FIF_WEBP
+                                Return "webp"
                             Case FREE_IMAGE_FORMAT.FIF_TIFF
                                 Return "tiff"
                             Case FREE_IMAGE_FORMAT.FIF_TARGA
@@ -456,10 +458,10 @@ Public Class B2SFile
                                 Return "psd"
                             Case FREE_IMAGE_FORMAT.FIF_EXR
                                 Return "exr"
-                            Case FREE_IMAGE_FORMAT.FIF_RAW
-                                Return "raw"
                             Case FREE_IMAGE_FORMAT.FIF_J2K, FREE_IMAGE_FORMAT.FIF_JP2
                                 Return "jp2"
+                            Case FREE_IMAGE_FORMAT.FIF_JXR
+                                Return "jxr"
                             Case Else
                                 ' For any other supported format, try to get extension from FreeImage
                                 Dim ext = FreeImage.GetFIFExtensionList(imageType)
@@ -499,7 +501,6 @@ Public Class B2SFile
             End If
 
             ' Check for WEBP signature (RIFF....WEBP)
-            ' Note: WEBP may not be supported by all FreeImage versions, so we detect it manually
             If imageBytes.Length >= 12 AndAlso 
                imageBytes(0) = &H52 AndAlso imageBytes(1) = &H49 AndAlso imageBytes(2) = &H46 AndAlso imageBytes(3) = &H46 AndAlso
                imageBytes(8) = &H57 AndAlso imageBytes(9) = &H45 AndAlso imageBytes(10) = &H42 AndAlso imageBytes(11) = &H50 Then
