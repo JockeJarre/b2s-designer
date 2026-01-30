@@ -141,7 +141,7 @@ When saving to B2Sz format, images are:
 
 ### FreeImage.dll Distribution
 
-The FreeImage-dotnet-core package includes native FreeImage.dll for:
+The FreeImage.Standard package includes native FreeImage.dll for:
 - **Windows**: FreeImage.dll (x86 and x64)
 - **Linux**: libfreeimage.so
 - **macOS**: libfreeimage.dylib
@@ -151,8 +151,8 @@ These are automatically copied to the output directory during build.
 ### Deployment Checklist
 
 When distributing B2S Designer:
-- ✅ Include FreeImage.dll (from packages/FreeImage-dotnet-core.4.3.6/runtimes/)
-- ✅ Include FreeImageNET.dll
+- ✅ Include FreeImage.dll (from packages/FreeImage.Standard.4.3.8/runtimes/)
+- ✅ Include FreeImageNET.dll or FreeImage.Standard.dll
 - ✅ Ensure both are in the same directory as B2SBackglassDesigner.exe
 
 ## Performance Considerations
@@ -184,7 +184,7 @@ Potential improvements:
 - Free for open-source projects
 - Commercial license may be required for proprietary use
 
-**FreeImage-dotnet-core**:
+**FreeImage.Standard**:
 - MIT License wrapper
 - Open source and free to use
 
@@ -199,7 +199,7 @@ Ensure compliance with FreeImage licensing when distributing B2S Designer.
 
 ### "Format not supported"
 - Check format is in supported list
-- Update FreeImage-dotnet-core to latest version
+- Update FreeImage.Standard to latest version
 - Use fallback formats (PNG, JPEG)
 
 ### "Out of memory" errors
@@ -210,5 +210,5 @@ Ensure compliance with FreeImage licensing when distributing B2S Designer.
 ## References
 
 - [FreeImage Project](https://freeimage.sourceforge.io/)
-- [FreeImage-dotnet-core on NuGet](https://www.nuget.org/packages/FreeImage-dotnet-core/)
+- [FreeImage.Standard on NuGet](https://www.nuget.org/packages/FreeImage.Standard/)
 - [B2Sz File Format Documentation](B2Sz_file_format.md)

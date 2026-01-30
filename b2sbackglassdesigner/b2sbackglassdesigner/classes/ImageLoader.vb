@@ -26,20 +26,25 @@ Public Class ImageLoader
             Try
                 ' Convert FreeImage bitmap to System.Drawing.Bitmap
                 Dim bitmap As Bitmap = FreeImage.GetBitmap(dib)
-                ' Create a copy to ensure we can dispose the FreeImage bitmap
-                Dim result = New Bitmap(bitmap)
-                Return result
+                Try
+                    ' Create a copy to ensure we can dispose the FreeImage bitmap
+                    Dim result = New Bitmap(bitmap)
+                    Return result
+                Finally
+                    ' Dispose the intermediate bitmap
+                    bitmap.Dispose()
+                End Try
             Finally
                 ' Unload the FreeImage bitmap to free memory
                 FreeImage.UnloadEx(dib)
             End Try
-        Catch ex As Exception
+        Catch freeImageEx As Exception
             ' If FreeImage fails, fall back to standard .NET loading
             Try
                 Return Bitmap.FromFile(filePath)
-            Catch
-                ' Re-throw the original exception if both methods fail
-                Throw ex
+            Catch fallbackEx As Exception
+                ' Throw aggregate exception with both failure details
+                Throw New Exception($"Failed to load image using both FreeImage and System.Drawing. FreeImage error: {freeImageEx.Message}. Fallback error: {fallbackEx.Message}", freeImageEx)
             End Try
         End Try
     End Function
@@ -69,6 +74,10 @@ Public Class ImageLoader
     ''' Detect if a file is a supported image format using FreeImage
     ''' </summary>
     Public Shared Function IsSupportedFormat(filePath As String) As Boolean
+        If Not File.Exists(filePath) Then
+            Return False
+        End If
+        
         Try
             Dim imageType = FreeImage.GetFileType(filePath, 0)
             Return imageType <> FREE_IMAGE_FORMAT.FIF_UNKNOWN
@@ -81,6 +90,10 @@ Public Class ImageLoader
     ''' Get the format name of an image file
     ''' </summary>
     Public Shared Function GetImageFormatName(filePath As String) As String
+        If Not File.Exists(filePath) Then
+            Return "Unknown"
+        End If
+        
         Try
             Dim imageType = FreeImage.GetFileType(filePath, 0)
             If imageType <> FREE_IMAGE_FORMAT.FIF_UNKNOWN Then
