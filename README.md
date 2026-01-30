@@ -8,10 +8,17 @@ It allows you to edit and create directB2S and B2Sz backglasses for the [B2S.Ser
 - **Multiple Formats**: Support for directB2S and B2Sz file formats
   - **directB2S**: Traditional XML format with embedded base64 images
   - **B2Sz**: New ZIP-based format with 25-50% smaller file sizes
+- **Extended Image Format Support**: 
+  - **WEBP** ✅ - Modern compression format (25-35% smaller files)
+  - **TIFF** - High-quality image format
+  - **JPEG 2000** - Advanced JPEG standard
+  - **Standard formats**: PNG, JPEG, GIF, BMP
+  - Powered by **FreeImage library** for comprehensive format support
 - **Animation Support**: Create animations for bulbs and other elements
 - **VPinMAME Integration**: Direct ROM communication for authentic pinball behavior
 
 See [B2Sz_file_format.md](B2Sz_file_format.md) for detailed information about the B2Sz format.
+See [FREEIMAGE_INTEGRATION.md](FREEIMAGE_INTEGRATION.md) for details about FreeImage library integration and supported formats.
 
 Documentation is available in the package as html-help but can also be read [online here](https://htmlpreview.github.io/?https://raw.githubusercontent.com/vpinball/b2s-designer/master/b2sbackglassdesigner/b2sbackglassdesigner/htmlhelp/Introduction.htm).
 
