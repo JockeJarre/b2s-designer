@@ -1,6 +1,6 @@
 # B2Sz Format
 
-This document describes the new features added to B2S Designer for the new B2Sz file format.
+This document describes the new features added to B2S Designer for the new B2Sz file format with FreeImage library support for extended image formats.
 
 ## Features
 
@@ -10,9 +10,32 @@ The B2Sz format is a new file format for B2S backglass files that stores images 
 
 #### Benefits
 
-- **Smaller file sizes**: Images are stored in their native format (PNG, JPEG, etc.) with compression
+- **Smaller file sizes**: Images are stored in their native format (PNG, JPEG, WEBP, etc.) with compression
 - **Easier editing**: Images can be extracted and replaced without editing XML
 - **Better version control**: ZIP format works better with source control systems
+- **Extended format support**: Supports modern image formats like WEBP, TIFF, and JPEG 2000 via FreeImage library
+
+#### Supported Image Formats
+
+With the integration of FreeImage library, B2Sz format now supports:
+
+**Standard Formats:**
+- PNG (Portable Network Graphics)
+- JPEG/JPG (Joint Photographic Experts Group)
+- GIF (Graphics Interchange Format)
+- BMP (Bitmap)
+
+**Extended Formats:**
+- **WEBP** (WebP - modern compression format)
+- **TIFF/TIF** (Tagged Image File Format)
+- **JPEG 2000** (JP2/J2K - improved JPEG standard)
+- **TGA** (Targa)
+- **ICO** (Icon)
+- **PSD** (Photoshop Document)
+- **EXR** (OpenEXR - HDR format)
+- **RAW** (Camera RAW formats)
+
+The format is automatically detected when loading images, ensuring seamless support for all formats.
 
 #### Format Structure
 
