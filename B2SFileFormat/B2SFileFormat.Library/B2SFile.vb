@@ -1,6 +1,7 @@
 ﻿Imports System.IO
 Imports System.IO.Compression
 Imports System.Xml
+Imports FreeImageAPI
 
 ''' <summary>
 ''' Represents a B2S backglass file (directb2s or B2Sz format)
@@ -429,6 +430,54 @@ Public Class B2SFile
                 Return "png"
             End If
 
+            Try
+                ' Use FreeImage to detect format automatically
+                Using ms As New MemoryStream(imageBytes)
+                    Dim imageType = FreeImage.GetFileTypeFromStream(ms)
+                    
+                    If imageType <> FREE_IMAGE_FORMAT.FIF_UNKNOWN Then
+                        ' Map FreeImage format to file extension
+                        Select Case imageType
+                            Case FREE_IMAGE_FORMAT.FIF_PNG
+                                Return "png"
+                            Case FREE_IMAGE_FORMAT.FIF_JPEG
+                                Return "jpg"
+                            Case FREE_IMAGE_FORMAT.FIF_GIF
+                                Return "gif"
+                            Case FREE_IMAGE_FORMAT.FIF_BMP
+                                Return "bmp"
+                            Case FREE_IMAGE_FORMAT.FIF_TIFF
+                                Return "tiff"
+                            Case FREE_IMAGE_FORMAT.FIF_TARGA
+                                Return "tga"
+                            Case FREE_IMAGE_FORMAT.FIF_ICO
+                                Return "ico"
+                            Case FREE_IMAGE_FORMAT.FIF_PSD
+                                Return "psd"
+                            Case FREE_IMAGE_FORMAT.FIF_EXR
+                                Return "exr"
+                            Case FREE_IMAGE_FORMAT.FIF_RAW
+                                Return "raw"
+                            Case FREE_IMAGE_FORMAT.FIF_J2K, FREE_IMAGE_FORMAT.FIF_JP2
+                                Return "jp2"
+                            Case Else
+                                ' For any other supported format, try to get extension from FreeImage
+                                Dim ext = FreeImage.GetFIFExtensionList(imageType)
+                                If Not String.IsNullOrEmpty(ext) Then
+                                    ' Get first extension from comma-separated list
+                                    Dim extensions = ext.Split(","c)
+                                    If extensions.Length > 0 Then
+                                        Return extensions(0).Trim()
+                                    End If
+                                End If
+                        End Select
+                    End If
+                End Using
+            Catch ex As Exception
+                ' If FreeImage detection fails, fall back to manual detection
+            End Try
+
+            ' Fallback: Manual signature detection for common formats
             ' Check for PNG signature
             If imageBytes.Length >= 8 AndAlso imageBytes(0) = &H89 AndAlso imageBytes(1) = &H50 AndAlso imageBytes(2) = &H4E AndAlso imageBytes(3) = &H47 Then
                 Return "png"
@@ -447,6 +496,21 @@ Public Class B2SFile
             ' Check for BMP signature
             If imageBytes.Length >= 2 AndAlso imageBytes(0) = &H42 AndAlso imageBytes(1) = &H4D Then
                 Return "bmp"
+            End If
+
+            ' Check for WEBP signature (RIFF....WEBP)
+            ' Note: WEBP may not be supported by all FreeImage versions, so we detect it manually
+            If imageBytes.Length >= 12 AndAlso 
+               imageBytes(0) = &H52 AndAlso imageBytes(1) = &H49 AndAlso imageBytes(2) = &H46 AndAlso imageBytes(3) = &H46 AndAlso
+               imageBytes(8) = &H57 AndAlso imageBytes(9) = &H45 AndAlso imageBytes(10) = &H42 AndAlso imageBytes(11) = &H50 Then
+                Return "webp"
+            End If
+
+            ' Check for TIFF signature (II or MM)
+            If imageBytes.Length >= 4 AndAlso 
+               ((imageBytes(0) = &H49 AndAlso imageBytes(1) = &H49 AndAlso imageBytes(2) = &H2A AndAlso imageBytes(3) = &H00) OrElse
+                (imageBytes(0) = &H4D AndAlso imageBytes(1) = &H4D AndAlso imageBytes(2) = &H00 AndAlso imageBytes(3) = &H2A)) Then
+                Return "tiff"
             End If
 
             ' Default to PNG
