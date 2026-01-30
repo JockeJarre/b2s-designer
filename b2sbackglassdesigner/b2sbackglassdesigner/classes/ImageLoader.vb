@@ -20,15 +20,15 @@ Public Class ImageLoader
             
             If dib.IsNull Then
                 ' If FreeImage can't load it, try System.Drawing as fallback
-                Return Bitmap.FromFile(filePath)
+                Return System.Drawing.Bitmap.FromFile(filePath)
             End If
             
             Try
                 ' Convert FreeImage bitmap to System.Drawing.Bitmap
-                Dim bitmap As Bitmap = FreeImage.GetBitmap(dib)
+                Dim bitmap As System.Drawing.Bitmap = FreeImage.GetBitmap(dib)
                 Try
                     ' Create a copy to ensure we can dispose the FreeImage bitmap
-                    Dim result = New Bitmap(bitmap)
+                    Dim result = New System.Drawing.Bitmap(bitmap)
                     Return result
                 Finally
                     ' Dispose the intermediate bitmap
@@ -41,7 +41,7 @@ Public Class ImageLoader
         Catch freeImageEx As Exception
             ' If FreeImage fails, fall back to standard .NET loading
             Try
-                Return Bitmap.FromFile(filePath)
+                Return System.Drawing.Bitmap.FromFile(filePath)
             Catch fallbackEx As Exception
                 ' Throw aggregate exception with both failure details
                 Throw New Exception($"Failed to load image using both FreeImage and System.Drawing. FreeImage error: {freeImageEx.Message}. Fallback error: {fallbackEx.Message}", freeImageEx)
@@ -61,8 +61,8 @@ Public Class ImageLoader
         Try
             image.Save(ms, image.RawFormat)
             ms.Position = 0
-            Dim tempBitmap = New Bitmap(ms)
-            Dim copy = New Bitmap(tempBitmap)
+            Dim tempBitmap = New System.Drawing.Bitmap(ms)
+            Dim copy = New System.Drawing.Bitmap(tempBitmap)
             tempBitmap.Dispose()
             Return copy
         Finally
